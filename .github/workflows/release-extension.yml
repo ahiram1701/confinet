@@ -34,7 +34,7 @@ jobs:
         run: pnpm --filter @confinet/extension zip
 
       - name: GitHub Release (descarga gratuita para Chrome/Brave en modo desarrollador)
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: apps/extension/.output/*-chrome.zip
           generate_release_notes: true
