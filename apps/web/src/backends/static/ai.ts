@@ -21,7 +21,17 @@ export interface ModelOption {
 
 /** Valida la respuesta del modelo con el contrato común (el mismo que usa la API). */
 export function parseAnalysis(text: string): LlmAnalysis {
-  const parsed = LlmAnalysisSchema.safeParse(parseJsonLoose(text));
+  const json = parseJsonLoose(text);
+  if (json === null) {
+    // Mostramos el principio de la respuesta: es lo que permite saber qué hizo el modelo.
+    const snippet = text.trim().replace(/\s+/g, ' ').slice(0, 120);
+    throw new Error(
+      snippet
+        ? `El modelo respondió sin JSON: "${snippet}…"`
+        : 'El modelo devolvió una respuesta vacía.',
+    );
+  }
+  const parsed = LlmAnalysisSchema.safeParse(json);
   if (!parsed.success) {
     const detail = parsed.error.issues
       .slice(0, 2)
@@ -125,22 +135,58 @@ async function ollamaFetch(path: string, key: string, init: RequestInit = {}): P
   return res;
 }
 
+interface OllamaChat {
+  message?: { content?: string; thinking?: string };
+  done_reason?: string;
+}
+
 async function runOllama(model: string, key: string, article: ArticleInput) {
-  const res = await ollamaFetch('/api/chat', key, {
-    method: 'POST',
-    body: JSON.stringify({
-      model,
-      stream: false,
-      format: SCHEMA,
-      options: { temperature: 0 },
-      messages: [
-        { role: 'system', content: INSTRUCTIONS },
-        { role: 'user', content: buildPrompt(article) },
-      ],
-    }),
-  });
-  const data = (await res.json()) as { message?: { content?: string } };
-  return parseAnalysis(data.message?.content ?? '');
+  const chat = async (extra: Record<string, unknown>, sys = INSTRUCTIONS) => {
+    const res = await ollamaFetch('/api/chat', key, {
+      method: 'POST',
+      body: JSON.stringify({
+        model,
+        stream: false,
+        ...extra,
+        // Margen de sobra: los modelos que «piensan» gastan tokens antes de responder.
+        options: { temperature: 0, num_predict: 4096 },
+        messages: [
+          { role: 'system', content: sys },
+          { role: 'user', content: buildPrompt(article) },
+        ],
+      }),
+    });
+    return (await res.json()) as OllamaChat;
+  };
+
+  // Salida estructurada con el schema…
+  const first = await chat({ format: SCHEMA });
+  try {
+    return parseOllama(first);
+  } catch {
+    // …y si el modelo la ignora (pasa con varios modelos que razonan), el JSON se pide en el prompt.
+    return parseOllama(await chat({}, INSTRUCTIONS + jsonOnlySuffix(SCHEMA)));
+  }
+}
+
+/** El JSON suele venir en `content`, pero algunos modelos lo dejan en `thinking`. */
+function parseOllama(data: OllamaChat): LlmAnalysis {
+  const content = data.message?.content ?? '';
+  const thinking = data.message?.thinking ?? '';
+  try {
+    return parseAnalysis(content);
+  } catch (error) {
+    if (thinking && parseJsonLoose(thinking) !== null) return parseAnalysis(thinking);
+    if (data.done_reason === 'length') {
+      throw new Error(
+        'La respuesta del modelo se cortó antes de terminar. Prueba con otro modelo.',
+        {
+          cause: error,
+        },
+      );
+    }
+    throw error;
+  }
 }
 
 export async function listOllamaModels(key: string): Promise<ModelOption[]> {

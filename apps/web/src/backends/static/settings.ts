@@ -9,7 +9,10 @@ export type AiProvider = 'none' | 'puter' | 'ollama-cloud';
 export interface AiSettings {
   provider: AiProvider;
   model?: string;
+  /** Se conserva aunque se elija otro proveedor, para no tener que pegarla de nuevo. */
   ollamaKey?: string;
+  /** Último modelo elegido con cada proveedor. */
+  models?: Partial<Record<Exclude<AiProvider, 'none'>, string>>;
 }
 
 const KEY = 'confinet:ai';
@@ -32,14 +35,28 @@ export function saveAiSettings(settings: AiSettings) {
   if (settings.provider === 'ollama-cloud' && !settings.ollamaKey) {
     throw new Error('Pega tu API key de Ollama.');
   }
-  // Solo guardamos la key si el proveedor la usa.
-  const clean: AiSettings =
-    settings.provider === 'none'
-      ? { provider: 'none' }
-      : settings.provider === 'puter'
-        ? { provider: 'puter', model: settings.model }
-        : settings;
+  const previous = getAiSettings();
+  const ollamaKey = settings.ollamaKey || previous.ollamaKey;
+  const models = { ...previous.models };
+  if (settings.provider !== 'none') models[settings.provider] = settings.model;
+  const clean: AiSettings = {
+    provider: settings.provider,
+    ...(settings.provider !== 'none' ? { model: settings.model } : {}),
+    ...(ollamaKey ? { ollamaKey } : {}),
+    ...(Object.keys(models).length ? { models } : {}),
+  };
   localStorage.setItem(KEY, JSON.stringify(clean));
+}
+
+/** Borra la key de Ollama de este navegador (y deja de usar Ollama si era el proveedor). */
+export function forgetOllamaKey() {
+  const next = getAiSettings();
+  delete next.ollamaKey;
+  if (next.provider === 'ollama-cloud') {
+    next.provider = 'none';
+    delete next.model;
+  }
+  localStorage.setItem(KEY, JSON.stringify(next));
 }
 
 /** ¿Está la IA lista para usarse? */
