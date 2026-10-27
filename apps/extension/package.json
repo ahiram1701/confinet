@@ -9,7 +9,7 @@
     "zip": "wxt zip",
     "lint": "eslint entrypoints lib",
     "typecheck": "wxt prepare && tsc --noEmit",
-    "test": "vitest run"
+    "test": "wxt prepare && vitest run"
   },
   "dependencies": {
     "@confinet/core": "workspace:*",
