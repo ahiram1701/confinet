@@ -75,11 +75,11 @@ test('puntúa la noticia en local y la pasa a la PWA para el análisis completo'
   await expect(pwa).toHaveURL(/\/confinet\/resultado\//, { timeout: 20_000 });
   await expect(pwa.getByText('Desglose')).toBeVisible();
   await expect(pwa.getByText('Un estudio confirma la eficacia de la vacuna')).toBeVisible();
+  // Abrimos el pilar «Contenido» sin alternarlo (en escritorio ya viene desplegado).
   await pwa
-    .getByRole('button', { name: /Contenido/ })
+    .locator('details', { hasText: 'Contenido' })
     .first()
-    .click()
-    .catch(() => undefined);
+    .evaluate((d) => ((d as HTMLDetailsElement).open = true));
   await expect(pwa.getByText(/firmado por "Ana García"/)).toBeVisible();
 
   await pwa.goto('http://localhost:4174/confinet/historial');
