@@ -1,0 +1,15 @@
+body {
+  margin: 0;
+  background: var(--cf-bg);
+}
+.popup {
+  width: 380px;
+  max-height: 580px;
+  overflow-y: auto;
+  padding: 12px;
+}
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

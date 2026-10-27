@@ -1,0 +1,32 @@
+name: 🐞 Error
+description: Algo no funciona como debería.
+labels: [bug]
+body:
+  - type: dropdown
+    id: where
+    attributes:
+      label: ¿Dónde ocurre?
+      options: [App (PWA), Extensión, Ambas, API / despliegue]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducirlo
+      placeholder: |
+        1. Abro…
+        2. Pulso…
+        3. Veo…
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Qué esperabas que pasara
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Navegador, sistema y versión de Confinet
+      placeholder: Chrome 140 en Windows 11, extensión 0.1.0

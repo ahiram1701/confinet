@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Guía de uso
+    url: https://github.com/ahiram1701/confinet/blob/main/docs/guia-de-uso.md
+    about: Antes de abrir un issue, revisa la guía y sus preguntas frecuentes.
+  - name: 🔒 Vulnerabilidad de seguridad
+    url: https://github.com/ahiram1701/confinet/security/advisories/new
+    about: Informa de forma privada, no en un issue público.

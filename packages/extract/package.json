@@ -1,0 +1,26 @@
+{
+  "name": "@confinet/extract",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./dom": "./src/dom.ts",
+    "./rewriter": "./src/rewriter.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@confinet/core": "workspace:*",
+    "@mozilla/readability": "^0.6.0"
+  },
+  "devDependencies": {
+    "linkedom": "^0.18.13"
+  }
+}

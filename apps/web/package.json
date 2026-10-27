@@ -1,0 +1,42 @@
+{
+  "name": "@confinet/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "e2e": "playwright test",
+    "test": "vitest run",
+    "build:static": "vite build --mode static",
+    "e2e:static": "playwright test -c playwright.static.config.ts"
+  },
+  "dependencies": {
+    "@confinet/core": "workspace:*",
+    "@confinet/extract": "workspace:*",
+    "@confinet/llm": "workspace:*",
+    "@confinet/ui": "workspace:*",
+    "@heyputer/puter.js": "^2.6.5",
+    "@tanstack/react-query": "^5.104.1",
+    "better-auth": "^1.7.7",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router": "^8.4.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261004.1",
+    "@playwright/test": "^1.63.0",
+    "@types/chrome": "^0.3.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "happy-dom": "^21.0.4",
+    "vite": "^8.3.2",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^4.1.11"
+  }
+}

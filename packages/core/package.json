@@ -1,0 +1,21 @@
+{
+  "name": "@confinet/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "tldts": "^7.4.16",
+    "zod": "^4.6.5"
+  }
+}

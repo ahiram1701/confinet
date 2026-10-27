@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.output/
+.wxt/
+.turbo/
+.wrangler/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+.dev.vars
+playwright-report/
+test-results/
+!apps/web/.env.static
+playwright-report-static/

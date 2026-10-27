@@ -1,0 +1,21 @@
+# Copia este archivo a .dev.vars para desarrollo local (no se sube a git).
+BETTER_AUTH_SECRET=cambia-esto-por-una-cadena-aleatoria-larga
+ENCRYPTION_KEY=base64-de-32-bytes-aleatorios
+# OAuth (opcional en local: ENABLE_DEV_LOGIN permite entrar con email/contraseña)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+# IA: no hay proveedor ni modelo por defecto. En local se usa "mock" (wrangler.toml).
+# Para uno real indica proveedor Y modelo; los respaldos van como proveedor:modelo.
+# LLM_PROVIDER=ollama-cloud
+# LLM_MODEL=gpt-oss:120b
+# LLM_API_KEY=
+# LLM_FALLBACKS=groq:llama-3.3-70b-versatile
+OLLAMA_API_KEY=
+GROQ_API_KEY=
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_AI_TOKEN=
+OLLAMA_BASE_URL=http://localhost:11434/v1
+# Google Fact Check Tools API (gratis)
+FACTCHECK_API_KEY=

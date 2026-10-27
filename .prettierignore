@@ -1,0 +1,8 @@
+dist
+.output
+.wxt
+.wrangler
+pnpm-lock.yaml
+**/migrations/meta
+.claude
+**/public

@@ -1,0 +1,62 @@
+name: Publicar extensión
+
+# Crea un tag ext-vX.Y.Z (igual a la versión de apps/extension/package.json).
+on:
+  push:
+    tags: ['ext-v*']
+
+permissions:
+  contents: write # para crear el GitHub Release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      # Versión sin servidor (GitHub Pages). Con Cloudflare: WXT_BACKEND=api y la URL de Pages.
+      WXT_BACKEND: static
+      WXT_APP_URL: https://ahiram1701.github.io/confinet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Comprobar versión
+        run: |
+          VERSION=$(node -p "require('./apps/extension/package.json').version")
+          [ "ext-v$VERSION" = "${GITHUB_REF_NAME}" ] || { echo "El tag ${GITHUB_REF_NAME} no coincide con la versión $VERSION"; exit 1; }
+
+      - name: Compilar y empaquetar
+        run: pnpm --filter @confinet/extension zip
+
+      - name: GitHub Release (descarga gratuita para Chrome/Brave en modo desarrollador)
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/extension/.output/*-chrome.zip
+          generate_release_notes: true
+
+      # Edge Add-ons: registro de desarrollador gratuito.
+      - name: Publicar en Edge Add-ons
+        if: vars.EDGE_ENABLED == 'true'
+        env:
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+        run: bash scripts/publish-edge.sh apps/extension/.output/*-chrome.zip
+
+      # Chrome Web Store: requiere pagar 5 USD (una vez) por la cuenta de desarrollador.
+      # Desactivado por defecto; actívalo con la variable CWS_ENABLED=true.
+      - name: Publicar en Chrome Web Store
+        if: vars.CWS_ENABLED == 'true'
+        env:
+          EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+        run: |
+          npx --yes chrome-webstore-upload-cli@3 upload \
+            --source apps/extension/.output/*-chrome.zip --auto-publish

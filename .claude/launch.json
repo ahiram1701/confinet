@@ -1,0 +1,45 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "apps/api/node_modules/wrangler/bin/wrangler.js",
+        "dev",
+        "--cwd",
+        "apps/api",
+        "--port",
+        "8788"
+      ],
+      "port": 8788
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "apps/web/node_modules/vite/bin/vite.js",
+        "apps/web",
+        "--port",
+        "5173",
+        "--strictPort"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "web-static",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "apps/web/node_modules/vite/bin/vite.js",
+        "preview",
+        "apps/web",
+        "--port",
+        "4173",
+        "--strictPort",
+        "--base",
+        "/confinet/"
+      ],
+      "port": 4173
+    }
+  ]
+}

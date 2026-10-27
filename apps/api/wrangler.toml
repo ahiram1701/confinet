@@ -1,0 +1,65 @@
+name = "confinet-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-15"
+compatibility_flags = ["nodejs_compat"]
+
+[dev]
+port = 8788
+
+# Valores no secretos. Los secretos van en .dev.vars (local) o `wrangler secret put` (remoto).
+[vars]
+APP_URL = "http://localhost:5173"
+# mock solo en local; en staging/producción no hay IA hasta configurar LLM_PROVIDER + LLM_MODEL.
+LLM_PROVIDER = "mock"
+LLM_FALLBACKS = ""
+AI_DAILY_ANON = "3"
+AI_DAILY_USER = "30"
+ANALYZE_DAILY_ANON = "60"
+ANALYZE_DAILY_USER = "500"
+CACHE_TTL_HOURS = "24"
+ENABLE_DEV_LOGIN = "true"
+ADMIN_EMAILS = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "confinet"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[env.staging]
+name = "confinet-api-staging"
+[env.staging.vars]
+APP_URL = "https://main.confinet.pages.dev"
+LLM_PROVIDER = ""
+LLM_FALLBACKS = ""
+AI_DAILY_ANON = "3"
+AI_DAILY_USER = "30"
+ANALYZE_DAILY_ANON = "60"
+ANALYZE_DAILY_USER = "500"
+CACHE_TTL_HOURS = "24"
+ENABLE_DEV_LOGIN = "false"
+ADMIN_EMAILS = ""
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "confinet-staging"
+database_id = "REEMPLAZAR_ID_D1_STAGING"
+migrations_dir = "migrations"
+
+[env.production]
+name = "confinet-api-production"
+[env.production.vars]
+APP_URL = "https://confinet.pages.dev"
+LLM_PROVIDER = ""
+LLM_FALLBACKS = ""
+AI_DAILY_ANON = "3"
+AI_DAILY_USER = "30"
+ANALYZE_DAILY_ANON = "60"
+ANALYZE_DAILY_USER = "500"
+CACHE_TTL_HOURS = "24"
+ENABLE_DEV_LOGIN = "false"
+ADMIN_EMAILS = ""
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "confinet-production"
+database_id = "REEMPLAZAR_ID_D1_PRODUCTION"
+migrations_dir = "migrations"

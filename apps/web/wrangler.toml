@@ -1,0 +1,14 @@
+# Configuración de Cloudflare Pages (PWA + proxy /api → Worker).
+name = "confinet"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-08-15"
+
+# Producción → Worker de producción
+[[env.production.services]]
+binding = "API"
+service = "confinet-api-production"
+
+# Previews (rama main y PRs) → Worker de staging
+[[env.preview.services]]
+binding = "API"
+service = "confinet-api-staging"

@@ -1,0 +1,30 @@
+name: 🎯 Puntuación incorrecta
+description: Confinet dio una nota que no te parece justa para una página.
+labels: [puntuacion-incorrecta]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Enlace analizado
+      placeholder: https://…
+    validations:
+      required: true
+  - type: input
+    id: score
+    attributes:
+      label: Puntuación que dio Confinet
+      placeholder: '72 (confianza alta)'
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: ¿Qué esperabas y por qué?
+      description: Cuanto más concreto (qué señal falla, con qué evidencia), mejor.
+    validations:
+      required: true
+  - type: dropdown
+    id: ai
+    attributes:
+      label: Proveedor de IA usado
+      options: [Ninguno, Puter, Ollama Cloud, Otro (versión con servidor)]
