@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { listOllamaModels, listPuterModels, type ModelOption } from '../backends/static/ai';
 import { isPuterSignedIn, loadPuter, signInPuter, signOutPuter } from '../backends/static/puter';
 import {
+  forgetOllamaKey,
   getAiSettings,
   saveAiSettings,
   type AiProvider,
@@ -98,7 +99,8 @@ function AiCard() {
 
   const changeProvider = (next: AiProvider) => {
     setProvider(next);
-    setModel('');
+    // Recuperamos el último modelo usado con ese proveedor (la key ya sigue en el formulario).
+    setModel(next === 'none' ? '' : (saved.models?.[next] ?? ''));
     setMessage(null);
     models.reset();
   };
@@ -121,6 +123,20 @@ function AiCard() {
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     }
+  };
+
+  const forgetKey = () => {
+    forgetOllamaKey();
+    const next = getAiSettings();
+    setSaved(next);
+    setOllamaKey('');
+    models.reset();
+    setMessage(
+      next.provider === 'none'
+        ? 'Key borrada. La IA queda desactivada hasta que elijas otro proveedor.'
+        : 'Key borrada de este navegador.',
+    );
+    queryClient.invalidateQueries({ queryKey: ['me'] });
   };
 
   const groups = [...new Set((models.data ?? []).map((m) => m.group ?? ''))];
@@ -193,6 +209,16 @@ function AiCard() {
               onChange={(e) => setOllamaKey(e.target.value)}
             />
           </label>
+          {saved.ollamaKey && (
+            <div className="cf-row" style={{ justifyContent: 'space-between' }}>
+              <span className="cf-muted cf-small">
+                Key guardada en este navegador; se conserva aunque cambies de proveedor.
+              </span>
+              <button type="button" className="cf-btn" onClick={forgetKey}>
+                Olvidar key
+              </button>
+            </div>
+          )}
         </>
       )}
 

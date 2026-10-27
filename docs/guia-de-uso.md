@@ -197,12 +197,19 @@ GLM…). **Cobra por token** a tu cuenta de Ollama y no incluye modelos de Claud
 3. Pulsa **«Cargar modelos disponibles»** y elige un **modelo**.
 4. Pulsa **«Guardar»**.
 
-La key se guarda **solo en este navegador**. Cada análisis con IA es una petición a Ollama, que
-se cobra según el modelo y la longitud del artículo (hasta unos 6 000–8 000 tokens de entrada).
+La key se guarda **solo en este navegador** y se conserva aunque cambies a Puter o a «Ninguno»:
+al volver a Ollama Cloud no hace falta pegarla otra vez (Confinet también recuerda el último
+modelo de cada proveedor). Para borrarla, pulsa **«Olvidar key»**.
+
+Cada análisis con IA es una petición a Ollama, que se cobra según el modelo y la longitud del
+artículo (hasta unos 6 000–8 000 tokens de entrada). Funcionan bien modelos grandes como
+`gpt-oss:120b`. Si un modelo no respeta el formato pedido, Confinet repite la petición una vez
+pidiéndole el JSON en el propio mensaje (es decir, puede costar dos peticiones).
 
 ### Quitar la IA
 
-Elige **«Ninguno (solo heurísticas)»** y pulsa **«Guardar»**. La key de Ollama se borra.
+Elige **«Ninguno (solo heurísticas)»** y pulsa **«Guardar»**. La key de Ollama sigue guardada
+hasta que pulses **«Olvidar key»**.
 
 ---
 
@@ -279,6 +286,14 @@ No tienes saldo o has superado el límite de peticiones simultáneas. Revisa oll
 #### «El navegador bloqueó la conexión directa con Ollama…»
 
 Ollama no permite llamadas desde esta web. Inicia sesión en Puter para que la petición pase por su proxy (tu key viajará a través de Puter).
+
+#### «El modelo respondió sin JSON…» o «El modelo devolvió una respuesta vacía.»
+
+El modelo no devolvió el análisis en el formato esperado, ni siquiera al repetir la petición. Prueba con otro modelo (por ejemplo, `gpt-oss:120b`). Si se repite, abre un issue con el texto del error.
+
+#### «La respuesta del modelo se cortó antes de terminar.»
+
+El modelo agotó su límite de respuesta (suele pasar con modelos que «razonan» mucho). Prueba con otro modelo.
 
 #### El resultado no tiene «Antigüedad del dominio».
 

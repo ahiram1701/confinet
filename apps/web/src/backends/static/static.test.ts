@@ -14,7 +14,7 @@ vi.mock('./puter', () => ({
 
 const { analyzeInBrowser } = await import('./analyze');
 const { parseSeed, lookupReputation } = await import('./reputation');
-const { saveAiSettings, getAiSettings } = await import('./settings');
+const { saveAiSettings, getAiSettings, forgetOllamaKey } = await import('./settings');
 const store = await import('./store');
 const { parseAnalysis } = await vi.importActual<typeof import('./ai')>('./ai');
 
@@ -61,9 +61,22 @@ describe('ajustes de IA', () => {
     );
   });
 
-  it('no guarda la key de Ollama si se elige otro proveedor', () => {
-    saveAiSettings({ provider: 'puter', model: 'claude-x', ollamaKey: 'secreta' } as never);
+  it('recuerda la key y el modelo de cada proveedor al cambiar entre ellos', () => {
+    saveAiSettings({ provider: 'ollama-cloud', model: 'gpt-oss:120b', ollamaKey: 'secreta' });
+    saveAiSettings({ provider: 'puter', model: 'claude-x' });
+    saveAiSettings({ provider: 'none' });
+    expect(getAiSettings()).toEqual({
+      provider: 'none',
+      ollamaKey: 'secreta',
+      models: { 'ollama-cloud': 'gpt-oss:120b', puter: 'claude-x' },
+    });
+  });
+
+  it('«Olvidar key» la borra y desactiva Ollama si era el proveedor', () => {
+    saveAiSettings({ provider: 'ollama-cloud', model: 'gpt-oss:120b', ollamaKey: 'secreta' });
+    forgetOllamaKey();
     expect(localStorage.getItem('confinet:ai')).not.toContain('secreta');
+    expect(getAiSettings().provider).toBe('none');
   });
 });
 
@@ -128,5 +141,7 @@ describe('reputación y respuesta del modelo', () => {
   it('valida la respuesta del modelo aunque venga envuelta en texto', () => {
     expect(parseAnalysis('```json\n' + JSON.stringify(goodAi) + '\n```').assessment).toBe(85);
     expect(() => parseAnalysis('{"tone":"raro"}')).toThrow(/no devolvió un análisis válido/);
+    expect(() => parseAnalysis('Lo siento, no puedo')).toThrow(/sin JSON: "Lo siento/);
+    expect(() => parseAnalysis('  ')).toThrow(/respuesta vacía/);
   });
 });

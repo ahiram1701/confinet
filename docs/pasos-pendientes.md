@@ -36,8 +36,9 @@ Si algo falla, el resultado muestra el motivo debajo del desglose. Ábreme un is
    <https://ollama.com/pricing>.
 2. Crea una API key en <https://ollama.com/settings/keys>.
 3. En <https://ahiram1701.github.io/confinet/cuenta>, elige **Ollama Cloud**, pega la key en
-   **«API key de Ollama»**, pulsa **«Cargar modelos disponibles»**, elige un modelo y
-   **«Guardar»**.
+   **«API key de Ollama»**, pulsa **«Cargar modelos disponibles»**, elige un modelo (por
+   ejemplo, `gpt-oss:120b`) y **«Guardar»**. La key queda guardada aunque cambies de proveedor;
+   para borrarla, pulsa **«Olvidar key»**.
 4. Analiza una noticia como en el paso 1.
 
 Si aparece «El navegador bloqueó la conexión directa con Ollama…», Ollama no admite llamadas
