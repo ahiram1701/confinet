@@ -9,7 +9,8 @@
     "zip": "wxt zip",
     "lint": "eslint entrypoints lib",
     "typecheck": "wxt prepare && tsc --noEmit",
-    "test": "wxt prepare && vitest run"
+    "test": "wxt prepare && vitest run",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@confinet/core": "workspace:*",
@@ -19,6 +20,7 @@
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/chrome": "^0.3.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

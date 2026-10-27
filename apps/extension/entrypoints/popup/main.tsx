@@ -15,11 +15,16 @@ function Popup() {
 
   useEffect(() => {
     getSettings().then((s) => setConnected(!!s.token));
-    browser.tabs.query({ active: true, currentWindow: true }).then(async ([tab]) => {
-      if (tab?.id == null) return;
-      setTabId(tab.id);
-      setState(await getTabState(tab.id));
-      analyze(tab.id, false);
+    // ?tabId=… permite abrir el popup como pestaña para otra página (lo usan los tests E2E).
+    const forced = Number(new URLSearchParams(location.search).get('tabId'));
+    const target = forced
+      ? Promise.resolve(forced)
+      : browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => tab?.id);
+    target.then(async (id) => {
+      if (id == null) return;
+      setTabId(id);
+      setState(await getTabState(id));
+      analyze(id, false);
     });
   }, []);
 

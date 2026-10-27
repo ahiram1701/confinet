@@ -14,3 +14,4 @@ playwright-report/
 test-results/
 !apps/web/.env.static
 playwright-report-static/
+.output-e2e/
