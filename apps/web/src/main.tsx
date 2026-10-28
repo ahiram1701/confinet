@@ -10,6 +10,9 @@ import { HistoryPage } from './pages/HistoryPage';
 import { ResultPage } from './pages/ResultPage';
 import { HandoffPage } from './pages/HandoffPage';
 import { SharePage } from './pages/SharePage';
+import { setupPwaUpdates } from './pwa';
+
+setupPwaUpdates();
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },

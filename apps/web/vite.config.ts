@@ -33,6 +33,8 @@ export default defineConfig(({ mode }) => {
       spaFallback(),
       VitePWA({
         registerType: 'autoUpdate',
+        // El registro lo hace src/pwa.ts, que además busca versiones nuevas periódicamente.
+        injectRegister: false,
         includeAssets: ['logo.svg', 'apple-touch-icon.png', 'favicon-32.png'],
         manifest: {
           name: 'Confinet — ¿Te puedes fiar?',
@@ -67,6 +69,7 @@ export default defineConfig(({ mode }) => {
           // La API nunca se cachea en el service worker: los análisis deben ser frescos.
           navigateFallbackDenylist: [/^\/api\//],
           runtimeCaching: [],
+          cleanupOutdatedCaches: true,
         },
       }),
     ],
