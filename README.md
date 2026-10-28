@@ -177,7 +177,8 @@ pnpm --filter @confinet/extension dev
 ```
 
 Compílala para la versión publicada con `WXT_BACKEND=static` y
-`WXT_APP_URL=https://ahiram1701.github.io/confinet`.
+`WXT_APP_URL=https://ahiram1701.github.io/confinet`. La versión del manifest se puede forzar con
+`WXT_VERSION` (la CI la calcula sola en cada release).
 
 ### Tests
 
@@ -199,13 +200,13 @@ BYOK) y E2E con Playwright de ambos modos, en móvil y escritorio.
 
 ## CI/CD
 
-| Workflow                                                           | Cuándo                   | Qué hace                                                                 |
-| ------------------------------------------------------------------ | ------------------------ | ------------------------------------------------------------------------ |
-| [`ci.yml`](.github/workflows/ci.yml)                               | PR y push a `main`       | Formato, lint, tipos, tests, builds y E2E de ambos modos                 |
-| [`pages.yml`](.github/workflows/pages.yml)                         | Push a `main`            | Publica la PWA en GitHub Pages                                           |
-| [`release-extension.yml`](.github/workflows/release-extension.yml) | Tag `ext-vX.Y.Z`         | GitHub Release con el `.zip`; Edge Add-ons y Chrome Web Store opcionales |
-| [`deploy.yml`](.github/workflows/deploy.yml)                       | Push a `main` / tag `v*` | Cloudflare (desactivado hasta definir `CLOUDFLARE_ENABLED=true`)         |
-| [`codeql.yml`](.github/workflows/codeql.yml)                       | PR, push y semanal       | Análisis de seguridad                                                    |
+| Workflow                                                           | Cuándo                              | Qué hace                                                                                                    |
+| ------------------------------------------------------------------ | ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [`ci.yml`](.github/workflows/ci.yml)                               | PR y push a `main`                  | Formato, lint, tipos, tests, builds y E2E de ambos modos                                                    |
+| [`pages.yml`](.github/workflows/pages.yml)                         | Push a `main`                       | Publica la PWA en GitHub Pages                                                                              |
+| [`release-extension.yml`](.github/workflows/release-extension.yml) | Push a `main` que toca la extensión | Versión nueva automática (tag `ext-v*` + Release con el `.zip`); Edge Add-ons y Chrome Web Store opcionales |
+| [`deploy.yml`](.github/workflows/deploy.yml)                       | Push a `main` / tag `v*`            | Cloudflare (desactivado hasta definir `CLOUDFLARE_ENABLED=true`)                                            |
+| [`codeql.yml`](.github/workflows/codeql.yml)                       | PR, push y semanal                  | Análisis de seguridad                                                                                       |
 
 Para activar el modo con servidor en Cloudflare, sigue [docs/despliegue-cloudflare.md](docs/despliegue-cloudflare.md).
 

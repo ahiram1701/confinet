@@ -6,15 +6,21 @@ import { createRoot } from 'react-dom/client';
 import { encodeHandoff } from '@confinet/core';
 import { APP_URL, BACKEND, getSettings } from '../../lib/config';
 import { getTabState, onTabStateChange, type Message, type TabState } from '../../lib/state';
+import { getAvailableUpdate, type UpdateInfo } from '../../lib/updates';
+
+const UPDATE_GUIDE =
+  'https://github.com/ahiram1701/confinet/blob/main/docs/guia-de-uso.md#actualizaciones';
 
 function Popup() {
   const [tabId, setTabId] = useState<number | null>(null);
   const [state, setState] = useState<TabState | null>(null);
   const [connected, setConnected] = useState(true);
   const [fatal, setFatal] = useState<string | null>(null);
+  const [update, setUpdate] = useState<UpdateInfo | null>(null);
 
   useEffect(() => {
     getSettings().then((s) => setConnected(!!s.token));
+    getAvailableUpdate().then(setUpdate);
     // ?tabId=… permite abrir el popup como pestaña para otra página (lo usan los tests E2E).
     const forced = Number(new URLSearchParams(location.search).get('tabId'));
     const target = forced
@@ -51,6 +57,19 @@ function Popup() {
           ⚙
         </button>
       </header>
+
+      {update && (
+        <div className="cf-note cf-small" data-testid="update">
+          Hay una versión nueva de Confinet (<strong>{update.latest}</strong>).{' '}
+          <a className="cf-link" href={update.url} target="_blank" rel="noreferrer">
+            Descargar
+          </a>{' '}
+          ·{' '}
+          <a className="cf-link" href={UPDATE_GUIDE} target="_blank" rel="noreferrer">
+            Cómo actualizar
+          </a>
+        </div>
+      )}
 
       {fatal && <div className="cf-note">{fatal}</div>}
       {!fatal && <Body state={state} />}

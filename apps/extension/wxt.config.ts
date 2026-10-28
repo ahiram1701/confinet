@@ -7,6 +7,10 @@ const APP_URL = (process.env.WXT_APP_URL ?? 'http://localhost:5173').replace(/\/
 // de prueba puede leer cualquier página. La build publicada nunca lleva este permiso.
 const E2E = process.env.WXT_E2E === 'true';
 
+// La CI calcula la versión de cada release (último tag ext-v* + 1) y la inyecta aquí, sin
+// necesidad de hacer commit en main. En local se usa la de package.json.
+const VERSION = process.env.WXT_VERSION;
+
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   // La build de pruebas va a otra carpeta para no confundirla nunca con la publicable.
@@ -15,11 +19,13 @@ export default defineConfig({
   manifest: {
     name: 'Confinet — ¿Te puedes fiar?',
     short_name: 'Confinet',
+    ...(VERSION ? { version: VERSION } : {}),
     description:
       'Mide la confianza de la información que lees: fuente, contenido y análisis con IA.',
     default_locale: undefined,
     // Permisos mínimos: solo actuamos sobre la pestaña cuando el usuario abre la extensión.
-    permissions: ['activeTab', 'scripting', 'storage'],
+    // `alarms`: comprobar una vez al día si hay versión nueva (no muestra ningún aviso al instalar).
+    permissions: ['activeTab', 'scripting', 'storage', 'alarms'],
     host_permissions: E2E ? ['<all_urls>'] : [`${APP_URL}/*`],
     // Análisis automático (opcional): se pide en tiempo de ejecución desde las opciones.
     optional_host_permissions: ['https://*/*', 'http://*/*'],

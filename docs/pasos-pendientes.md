@@ -46,28 +46,33 @@ desde webs. Inicia sesión también en Puter (paso 1) para que la petición pase
 
 ## 3. Instalar tu extensión en Chrome
 
-1. Descarga `confinetextension-0.1.0-chrome.zip` desde
+1. Descarga `confinet-extension-X.Y.Z-chrome.zip` (la última versión) desde
    <https://github.com/ahiram1701/confinet/releases/latest>.
 2. Descomprímelo en una carpeta permanente (por ejemplo, `Documentos\Confinet`).
 3. Abre `chrome://extensions`, activa **«Modo de desarrollador»** y pulsa **«Cargar
    descomprimida»** → elige la carpeta.
 4. Fija el icono (🧩 → 📌), abre una noticia y pulsa el icono de Confinet.
 
+Instalada así, la extensión **no se actualiza sola** (ningún navegador lo hace con las
+extensiones descomprimidas), pero **te avisa** cuando hay versión nueva. Para que se actualice
+sola, publícala en Edge Add-ons (paso 4, gratis) e instálala desde allí.
+
 ## 4. Publicar en Edge Add-ons
 
-Registro gratuito. Microsoft revisa cada versión (puede tardar unos días).
+Registro gratuito. Microsoft revisa cada versión (puede tardar unos días). **Es la forma gratuita
+de que la extensión se actualice sola** en el navegador de quien la instale.
 
 1. Regístrate como desarrollador en <https://partner.microsoft.com/dashboard/microsoftedge/overview>
    con tu cuenta Microsoft.
-2. Pulsa **«Create new extension»** y sube `confinetextension-0.1.0-chrome.zip` (el mismo de
-   Chrome).
+2. Pulsa **«Create new extension»** y sube el `.zip` de la última versión (el mismo de Chrome).
 3. Rellena la ficha:
    - **Nombre y descripción**: puedes copiar la del repositorio.
    - **Capturas**: usa las de [`docs/screenshots`](screenshots).
    - **Política de privacidad**: `https://ahiram1701.github.io/confinet/privacidad`.
    - **Justificación de permisos**: `activeTab` y `scripting` sirven para leer la página cuando
-     el usuario pulsa el icono; `storage`, para guardar los ajustes; los permisos opcionales de
-     sitios, solo para el análisis automático, si el usuario lo activa.
+     el usuario pulsa el icono; `storage`, para guardar los ajustes; `alarms`, para comprobar
+     una vez al día si hay versión nueva; los permisos opcionales de sitios, solo para el
+     análisis automático, si el usuario lo activa.
 4. Envía a revisión.
 
 **Publicación automática en futuras versiones (opcional):**
@@ -77,7 +82,7 @@ Registro gratuito. Microsoft revisa cada versión (puede tardar unos días).
 2. En GitHub → **Settings → Environments → production**, añade los secretos `EDGE_PRODUCT_ID`,
    `EDGE_CLIENT_ID` y `EDGE_API_KEY`.
 3. En **Settings → Secrets and variables → Actions → Variables**, crea `EDGE_ENABLED` = `true`.
-4. A partir de ahí, cada tag `ext-vX.Y.Z` sube la versión a Edge automáticamente.
+4. A partir de ahí, cada versión nueva se sube a Edge automáticamente.
 
 ## 5. Publicar en Chrome Web Store
 
@@ -97,16 +102,13 @@ y un panel de administración. Sigue [despliegue-cloudflare.md](despliegue-cloud
 
 ### Publicar nuevas versiones de la extensión
 
-1. Sube la versión en `apps/extension/package.json` (o usa `pnpm changeset`).
-2. Haz commit y push a `main`.
-3. Crea el tag con la misma versión:
+No hay que hacer nada: cada cambio que afecta a la extensión y se fusiona en `main` publica una
+versión nueva sola (último tag `ext-v*` + 1 en el parche, p. ej. 0.1.1 → 0.1.2). El workflow
+«Publicar extensión» crea el tag y el Release con el `.zip` y, si lo activaste, publica en Edge y
+Chrome.
 
-```bash
-git tag ext-v0.2.0
-```
+Para un salto mayor (0.2.0, 1.0.0), sube la versión en `apps/extension/package.json` (o usa
+`pnpm changeset`): si es mayor que la del último tag, se usa esa.
 
-```bash
-git push origin ext-v0.2.0
-```
-
-El workflow «Publicar extensión» crea el Release y, si lo activaste, publica en Edge y Chrome.
+La app web se despliega en GitHub Pages con cada push a `main` y se actualiza sola en los
+navegadores de quien la usa.

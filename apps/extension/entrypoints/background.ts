@@ -1,8 +1,17 @@
 import { analyzeTab, isAnalyzableUrl, looksLikeArticle } from '../lib/analyze';
 import { APP_URL, getSettings, saveSettings } from '../lib/config';
 import { clearTabState, type Message } from '../lib/state';
+import { checkForUpdate } from '../lib/updates';
 
 export default defineBackground(() => {
+  // ¿Hay versión nueva? Al instalar/arrancar y una vez al día (solo instalación desde GitHub).
+  browser.runtime.onInstalled.addListener(() => void checkForUpdate());
+  browser.runtime.onStartup.addListener(() => void checkForUpdate());
+  browser.alarms.create('check-update', { periodInMinutes: 24 * 60 });
+  browser.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === 'check-update') void checkForUpdate();
+  });
+
   // Peticiones del popup.
   browser.runtime.onMessage.addListener((message: Message, _sender, sendResponse) => {
     if (message.type !== 'analyze') return;

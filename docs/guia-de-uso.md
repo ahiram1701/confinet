@@ -65,22 +65,40 @@ ordenador.
 
 ### Microsoft Edge
 
-Instálala desde **Edge Add-ons** (busca «Confinet») y pulsa **«Obtener»**.
+Cuando esté publicada en **Edge Add-ons**, búscala allí («Confinet») y pulsa **«Obtener»**: así se
+actualiza sola. Mientras tanto, usa la instalación manual de abajo (también funciona en Edge, en
+`edge://extensions`).
 
 ### Chrome y Brave (instalación manual, gratuita)
 
 1. Ve a la página de [Releases](https://github.com/ahiram1701/confinet/releases) y descarga el
-   archivo **`confinetextension-X.Y.Z-chrome.zip`** de la última versión.
+   archivo **`confinet-extension-X.Y.Z-chrome.zip`** de la última versión.
 2. Descomprímelo en una carpeta que no vayas a borrar.
 3. Abre `chrome://extensions` (en Brave, `brave://extensions`).
 4. Activa el **«Modo de desarrollador»** (arriba a la derecha).
 5. Pulsa **«Cargar descomprimida»** y elige la carpeta del paso 2.
 6. Pulsa el icono de la pieza de puzle 🧩 y **fija** Confinet para tenerlo siempre a mano.
 
-> Para actualizar, repite los pasos con el nuevo `.zip` y pulsa ↻ en la tarjeta de la extensión.
+**Permisos que pide**: leer la pestaña activa **solo cuando pulsas su icono** (`activeTab`),
+guardar tus ajustes y comprobar una vez al día si hay versión nueva (`alarms`). No lee tu
+historial de navegación.
 
-**Permisos que pide**: leer la pestaña activa **solo cuando pulsas su icono** (`activeTab`) y
-guardar tus ajustes. No lee tu historial de navegación.
+### Actualizaciones
+
+| Dónde la usas                       | Cómo se actualiza                                                                                                                                                 |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App (web o PWA instalada)           | **Sola.** Busca versión nueva cada hora y al volver a la app; si la hay, se recarga con ella.                                                                     |
+| Extensión desde Edge Add-ons        | **Sola**, como cualquier extensión de tienda.                                                                                                                     |
+| Extensión instalada desde el `.zip` | Los navegadores no actualizan solas las extensiones descomprimidas. Confinet **te avisa** en su ventana: «Hay una versión nueva…» con el enlace para descargarla. |
+
+Para actualizar la extensión descomprimida:
+
+1. Pulsa **«Descargar»** en el aviso (o ve a
+   [Releases](https://github.com/ahiram1701/confinet/releases/latest)) y baja el `.zip`.
+2. Descomprímelo **encima de la misma carpeta** que usaste al instalarla (sustituye los archivos).
+3. En `chrome://extensions`, pulsa **↻** en la tarjeta de Confinet.
+
+Tus ajustes se conservan.
 
 ---
 

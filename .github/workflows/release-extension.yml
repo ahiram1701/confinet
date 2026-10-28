@@ -1,12 +1,29 @@
 name: Publicar extensión
 
-# Crea un tag ext-vX.Y.Z (igual a la versión de apps/extension/package.json).
+# Cada cambio que afecta a la extensión y llega a main publica una versión nueva sola:
+# versión = último tag ext-v* + 1 en el parche (o la de apps/extension/package.json si es mayor).
+# También se puede lanzar a mano o con un tag ext-vX.Y.Z.
 on:
   push:
+    branches: [main]
+    paths:
+      - 'apps/extension/**'
+      - '!apps/extension/e2e/**'
+      - '!apps/extension/**/*.test.ts'
+      - '!apps/extension/playwright.config.ts'
+      - 'packages/core/**'
+      - 'packages/extract/**'
+      - 'packages/ui/**'
+      - '.github/workflows/release-extension.yml'
     tags: ['ext-v*']
+  workflow_dispatch:
 
 permissions:
-  contents: write # para crear el GitHub Release
+  contents: write # para crear el tag y el GitHub Release
+
+concurrency:
+  group: release-extension
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -18,6 +35,8 @@ jobs:
       WXT_APP_URL: https://ahiram1701.github.io/confinet
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # necesitamos los tags para calcular la versión
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v7
         with:
@@ -25,28 +44,49 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
-      - name: Comprobar versión
+      - name: Calcular versión
+        id: version
         run: |
-          VERSION=$(node -p "require('./apps/extension/package.json').version")
-          [ "ext-v$VERSION" = "${GITHUB_REF_NAME}" ] || { echo "El tag ${GITHUB_REF_NAME} no coincide con la versión $VERSION"; exit 1; }
+          PKG=$(node -p "require('./apps/extension/package.json').version")
+          LAST=$(git tag -l 'ext-v*' --sort=-v:refname | head -1 | sed 's/^ext-v//')
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            VERSION="${GITHUB_REF_NAME#ext-v}"
+          elif [ -z "$LAST" ]; then
+            VERSION="$PKG"
+          else
+            NEXT=$(echo "$LAST" | awk -F. '{ print $1 "." $2 "." $3 + 1 }')
+            VERSION=$(printf '%s\n%s\n' "$NEXT" "$PKG" | sort -V | tail -1)
+          fi
+          echo "Versión: $VERSION (último tag: ${LAST:-ninguno}, package.json: $PKG)"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Compilar y empaquetar
-        run: pnpm --filter @confinet/extension zip
+        env:
+          WXT_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          pnpm --filter @confinet/extension zip
+          mkdir -p dist-ext
+          mv apps/extension/.output/*-chrome.zip "dist-ext/confinet-extension-$WXT_VERSION-chrome.zip"
 
-      - name: GitHub Release (descarga gratuita para Chrome/Brave en modo desarrollador)
+      - name: GitHub Release (descarga gratuita para Chrome/Brave/Edge en modo desarrollador)
         uses: softprops/action-gh-release@v3
         with:
-          files: apps/extension/.output/*-chrome.zip
+          tag_name: ext-v${{ steps.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: Extensión ${{ steps.version.outputs.version }}
+          files: dist-ext/*.zip
           generate_release_notes: true
+          make_latest: true
 
-      # Edge Add-ons: registro de desarrollador gratuito.
+      # Edge Add-ons: registro de desarrollador gratuito. Con la extensión en la tienda, el
+      # navegador de cada usuario la actualiza solo.
       - name: Publicar en Edge Add-ons
         if: vars.EDGE_ENABLED == 'true'
         env:
           EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
           EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
           EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
-        run: bash scripts/publish-edge.sh apps/extension/.output/*-chrome.zip
+        run: bash scripts/publish-edge.sh dist-ext/*.zip
 
       # Chrome Web Store: requiere pagar 5 USD (una vez) por la cuenta de desarrollador.
       # Desactivado por defecto; actívalo con la variable CWS_ENABLED=true.
@@ -59,4 +99,4 @@ jobs:
           REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
         run: |
           npx --yes chrome-webstore-upload-cli@3 upload \
-            --source apps/extension/.output/*-chrome.zip --auto-publish
+            --source dist-ext/*.zip --auto-publish
