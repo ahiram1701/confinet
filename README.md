@@ -210,9 +210,6 @@ BYOK) y E2E con Playwright de ambos modos, en móvil y escritorio.
 
 Para activar el modo con servidor en Cloudflare, sigue [docs/despliegue-cloudflare.md](docs/despliegue-cloudflare.md).
 
-Los pasos que requieren las cuentas del mantenedor (probar la IA con Puter u Ollama, publicar en
-Edge Add-ons o Chrome Web Store) están en [docs/pasos-pendientes.md](docs/pasos-pendientes.md); para Edge hay una guía detallada en [docs/publicar-edge.md](docs/publicar-edge.md).
-
 ## Roadmap
 
 - [ ] Publicación en Edge Add-ons
