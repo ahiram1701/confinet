@@ -59,35 +59,15 @@ sola, publícala en Edge Add-ons (paso 4, gratis) e instálala desde allí.
 
 ## 4. Publicar en Edge Add-ons
 
-Registro gratuito. Microsoft revisa cada versión (puede tardar unos días). **Es la forma gratuita
-de que la extensión se actualice sola** en el navegador de quien la instale.
-
-1. Regístrate como desarrollador en <https://partner.microsoft.com/dashboard/microsoftedge/overview>
-   con tu cuenta Microsoft.
-2. Pulsa **«Create new extension»** y sube el `.zip` de la última versión (el mismo de Chrome).
-3. Rellena la ficha:
-   - **Nombre y descripción**: puedes copiar la del repositorio.
-   - **Capturas**: usa las de [`docs/screenshots`](screenshots).
-   - **Política de privacidad**: `https://ahiram1701.github.io/confinet/privacidad`.
-   - **Justificación de permisos**: `activeTab` y `scripting` sirven para leer la página cuando
-     el usuario pulsa el icono; `storage`, para guardar los ajustes; `alarms`, para comprobar
-     una vez al día si hay versión nueva; los permisos opcionales de sitios, solo para el
-     análisis automático, si el usuario lo activa.
-4. Envía a revisión.
-
-**Publicación automática en futuras versiones (opcional):**
-
-1. En Partner Center → Microsoft Edge → **Publish API**, activa la API y copia el **Client ID**
-   y la **API key**. El **Product ID** está en la página de tu extensión.
-2. En GitHub → **Settings → Environments → production**, añade los secretos `EDGE_PRODUCT_ID`,
-   `EDGE_CLIENT_ID` y `EDGE_API_KEY`.
-3. En **Settings → Secrets and variables → Actions → Variables**, crea `EDGE_ENABLED` = `true`.
-4. A partir de ahí, cada versión nueva se sube a Edge automáticamente.
+Registro gratuito. **Es la forma gratuita de que la extensión se actualice sola** en el navegador
+de quien la instale. Sigue la guía paso a paso, con los textos para copiar y las imágenes ya
+preparadas: **[publicar-edge.md](publicar-edge.md)**.
 
 ## 5. Publicar en Chrome Web Store
 
 1. Regístrate en <https://chrome.google.com/webstore/devconsole> (pago único de 5 USD).
-2. **«Añadir elemento nuevo»** → sube el `.zip` → rellena la ficha como en Edge (paso 4.3).
+2. **«Añadir elemento nuevo»** → sube el `.zip` → rellena la ficha con los mismos textos de
+   [publicar-edge.md](publicar-edge.md) (en Chrome el logo es `docs/tienda/logo-128.png`).
 3. Para automatizarlo, sigue la guía de credenciales de
    [chrome-webstore-upload](https://github.com/fregante/chrome-webstore-upload-keys) y añade en el
    environment `production` los secretos `CWS_EXTENSION_ID`, `CWS_CLIENT_ID`,

@@ -10,6 +10,7 @@ AUTH=(-H "Authorization: ApiKey ${EDGE_API_KEY}" -H "X-ClientID: ${EDGE_CLIENT_I
 echo "Subiendo ${ZIP}…"
 OPERATION=$(curl -fsS -D - -o /dev/null "${AUTH[@]}" -H "Content-Type: application/zip" \
   -X POST "${API}/draft/package" --data-binary "@${ZIP}" | awk -F': ' 'tolower($1)=="location"{print $2}' | tr -d '\r')
+OPERATION="${OPERATION##*/}" # la cabecera Location puede traer la ruta completa
 
 for _ in $(seq 1 30); do
   STATUS=$(curl -fsS "${AUTH[@]}" "${API}/draft/package/operations/${OPERATION}" | jq -r .status)
