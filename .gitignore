@@ -15,3 +15,6 @@ test-results/
 !apps/web/.env.static
 playwright-report-static/
 .output-e2e/
+
+# Notas e imágenes personales del mantenedor (no se publican)
+privado/
