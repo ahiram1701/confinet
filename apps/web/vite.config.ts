@@ -5,8 +5,15 @@ import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 /**
+ * Páginas que otros sitios enlazan y comprueban (las tiendas de extensiones validan la URL de la
+ * política de privacidad): necesitan responder 200, no el 404 del fallback.
+ */
+const PUBLIC_PAGES = ['privacidad', 'terminos'];
+
+/**
  * GitHub Pages no sabe que es una SPA: para una ruta como /confinet/historial devuelve 404.html.
  * Si 404.html es una copia de index.html, la app arranca igualmente y el router se encarga.
+ * Para PUBLIC_PAGES se crea además <ruta>.html, que Pages sirve en /<ruta> con estado 200.
  */
 function spaFallback(): Plugin {
   let outDir = 'dist';
@@ -17,7 +24,10 @@ function spaFallback(): Plugin {
       outDir = config.build.outDir;
     },
     async closeBundle() {
-      await copyFile(resolve(outDir, 'index.html'), resolve(outDir, '404.html'));
+      const index = resolve(outDir, 'index.html');
+      for (const page of ['404', ...PUBLIC_PAGES]) {
+        await copyFile(index, resolve(outDir, `${page}.html`));
+      }
     },
   };
 }
