@@ -4,6 +4,7 @@ import {
   contentSignals,
   normalizeUrl,
   registrableDomain,
+  searchFactChecks,
   sourceSignals,
   type AnalyzeRequest,
   type AnalyzeResponse,
@@ -19,7 +20,6 @@ import { analysis, userHistory } from '../db/schema';
 import type { AuthUser, Env } from '../env';
 import { sha256Hex } from '../lib/crypto';
 import { HttpError } from '../lib/errors';
-import { searchFactChecks } from './factcheck';
 import { assertPublicUrl, fetchAndExtract } from './fetch-page';
 import { getUsage, quotaSubject, recordUsage } from './quota';
 import { domainAgeDays } from './rdap';
@@ -119,7 +119,7 @@ export async function runAnalysis(
   if (llmOutcome instanceof Error) console.warn('LLM no disponible:', llmOutcome.message);
 
   const factChecks: FactCheckMatch[] = llmResult
-    ? await searchFactChecks(env.FACTCHECK_API_KEY, llmResult.analysis.claims, page.lang)
+    ? (await searchFactChecks(env.FACTCHECK_API_KEY, llmResult.analysis.claims, page.lang)).matches
     : [];
 
   const trust = computeTrustScore([

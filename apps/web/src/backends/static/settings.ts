@@ -1,6 +1,6 @@
 /**
- * Ajustes de IA del modo estático. Viven solo en este navegador (localStorage):
- * la key de Ollama nunca sale de aquí salvo hacia el propio proveedor.
+ * Ajustes de IA y verificaciones del modo estático. Viven solo en este navegador (localStorage):
+ * las keys nunca salen de aquí salvo hacia el propio proveedor (Ollama, Google).
  *
  * No hay proveedor ni modelo por defecto: sin elección del usuario, no se usa IA.
  */
@@ -65,4 +65,25 @@ export function forgetOllamaKey() {
 /** ¿Está la IA lista para usarse? */
 export function isAiConfigured(s: AiSettings = getAiSettings()): boolean {
   return s.provider !== 'none' && !!s.model && (s.provider !== 'ollama-cloud' || !!s.ollamaKey);
+}
+
+// ── Verificaciones externas (Google Fact Check Tools) ──────────────────────────
+// Key aparte de la IA: las verificaciones funcionan también sin proveedor de IA.
+const FACTCHECK_KEY = 'confinet:factcheck';
+
+export function getFactCheckKey(): string | null {
+  try {
+    return localStorage.getItem(FACTCHECK_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function saveFactCheckKey(key: string) {
+  if (!key.trim()) throw new AppError('error.settings.pasteFactCheckKey');
+  localStorage.setItem(FACTCHECK_KEY, key.trim());
+}
+
+export function forgetFactCheckKey() {
+  localStorage.removeItem(FACTCHECK_KEY);
 }

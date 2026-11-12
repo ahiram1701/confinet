@@ -1,3 +1,4 @@
+import { testFactCheckKey } from '@confinet/core';
 import type { MessageKey } from '@confinet/i18n';
 import { useI18n } from '@confinet/i18n/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -5,9 +6,12 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { listOllamaModels, listPuterModels, type ModelOption } from '../backends/static/ai';
 import { isPuterSignedIn, loadPuter, signInPuter, signOutPuter } from '../backends/static/puter';
 import {
+  forgetFactCheckKey,
   forgetOllamaKey,
   getAiSettings,
+  getFactCheckKey,
   saveAiSettings,
+  saveFactCheckKey,
   type AiProvider,
   type AiSettings,
 } from '../backends/static/settings';
@@ -30,6 +34,7 @@ export function StaticAccountPage() {
       <h1 style={{ margin: 0, fontSize: 22 }}>{t('staticAccount.title')}</h1>
       <PuterCard />
       <AiCard />
+      <FactCheckCard />
       <LanguageCard />
       <LocalDataCard />
     </div>
@@ -285,6 +290,111 @@ function AiCard() {
       <button className="cf-btn cf-btn-primary" type="submit">
         {t('common.save')}
       </button>
+    </form>
+  );
+}
+
+/** Key de Google Fact Check: igual que la de Ollama, vive solo en este navegador. */
+function FactCheckCard() {
+  const { t, rich, errorText } = useI18n();
+  const [saved, setSaved] = useState(getFactCheckKey);
+  const [key, setKey] = useState('');
+  const [message, setMessage] = useState<{ key: MessageKey } | { error: unknown } | null>(null);
+  const test = useMutation({ mutationFn: (k: string) => testFactCheckKey(k) });
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      saveFactCheckKey(key);
+      setSaved(getFactCheckKey());
+      setKey('');
+      setMessage({ key: 'factcheck.saved' });
+    } catch (error) {
+      setMessage({ error });
+    }
+  };
+
+  const forget = () => {
+    forgetFactCheckKey();
+    setSaved(null);
+    test.reset();
+    setMessage({ key: 'factcheck.forgotten' });
+  };
+
+  const testResult: MessageKey | null =
+    test.data === 'ok'
+      ? 'factcheck.testOk'
+      : test.data === 'rejected'
+        ? 'factcheck.testRejected'
+        : test.data
+          ? 'factcheck.testError'
+          : null;
+
+  return (
+    <form className="cf-card cf-stack" onSubmit={submit} aria-labelledby="factcheck-title">
+      <h2 className="cf-h2" id="factcheck-title">
+        {t('factcheck.title')}
+      </h2>
+      <p className="cf-muted cf-small" style={{ margin: 0 }}>
+        {rich('factcheck.intro', { b: (s) => <strong>{s}</strong> })}
+      </p>
+      <p className="cf-muted cf-small" style={{ margin: 0 }}>
+        {rich('factcheck.steps', {
+          link: (s) => (
+            <a
+              className="cf-link"
+              href="https://console.cloud.google.com/apis/library/factchecktools.googleapis.com"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {s}
+            </a>
+          ),
+        })}
+      </p>
+      {saved && (
+        <div className="cf-row" style={{ justifyContent: 'space-between' }}>
+          <span className="cf-small" data-testid="factcheck-active">
+            {t('factcheck.active')}
+          </span>
+          <button type="button" className="cf-btn" onClick={forget}>
+            {t('factcheck.forget')}
+          </button>
+        </div>
+      )}
+      <label className="field">
+        {t('factcheck.key')}
+        <input
+          className="input"
+          type="password"
+          autoComplete="off"
+          value={key}
+          onChange={(e) => setKey(e.target.value)}
+        />
+      </label>
+      {message && (
+        <span className="cf-small">
+          {'key' in message ? t(message.key) : errorText(message.error)}
+        </span>
+      )}
+      {testResult && (
+        <span className={`cf-small ${test.data === 'ok' ? '' : 'error'}`} role="status">
+          {t(testResult)}
+        </span>
+      )}
+      <div className="cf-row">
+        <button className="cf-btn cf-btn-primary" type="submit" disabled={!key.trim()}>
+          {t('common.save')}
+        </button>
+        <button
+          type="button"
+          className="cf-btn"
+          disabled={!(key.trim() || saved) || test.isPending}
+          onClick={() => test.mutate(key.trim() || saved!)}
+        >
+          {test.isPending ? t('factcheck.testing') : t('factcheck.test')}
+        </button>
+      </div>
     </form>
   );
 }
