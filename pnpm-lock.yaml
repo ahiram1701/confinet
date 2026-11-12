@@ -47,6 +47,9 @@ importers:
       '@confinet/extract':
         specifier: workspace:*
         version: link:../../packages/extract
+      '@confinet/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@confinet/llm':
         specifier: workspace:*
         version: link:../../packages/llm
@@ -87,6 +90,9 @@ importers:
       '@confinet/extract':
         specifier: workspace:*
         version: link:../../packages/extract
+      '@confinet/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@confinet/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -127,6 +133,9 @@ importers:
       '@confinet/extract':
         specifier: workspace:*
         version: link:../../packages/extract
+      '@confinet/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@confinet/llm':
         specifier: workspace:*
         version: link:../../packages/llm
@@ -191,6 +200,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@confinet/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       tldts:
         specifier: ^7.4.19
         version: 7.4.19
@@ -210,6 +222,15 @@ importers:
       linkedom:
         specifier: ^0.18.15
         version: 0.18.15
+
+  packages/i18n:
+    devDependencies:
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+      react:
+        specifier: ^19.3.1
+        version: 19.3.1
 
   packages/llm:
     dependencies:
@@ -234,6 +255,9 @@ importers:
       '@confinet/core':
         specifier: workspace:*
         version: link:../core
+      '@confinet/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       ai:
         specifier: ^7.0.164
         version: 7.0.164(zod@4.6.7)
@@ -246,6 +270,9 @@ importers:
       '@confinet/core':
         specifier: workspace:*
         version: link:../core
+      '@confinet/i18n':
+        specifier: workspace:*
+        version: link:../i18n
     devDependencies:
       '@types/react':
         specifier: ^19.3.0

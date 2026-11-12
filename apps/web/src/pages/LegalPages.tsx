@@ -1,15 +1,29 @@
 /*
  * Borradores de política de privacidad y términos. Las tiendas de extensiones exigen una
  * política de privacidad pública. Revisa y adapta estos textos antes de publicar.
+ *
+ * Al ser texto corrido, cada idioma tiene su versión completa en lugar de claves sueltas:
+ * si cambias una, cambia también la otra.
  */
 
+import { useI18n } from '@confinet/i18n/react';
 import { MODE } from '../api';
 
 export function PrivacyPage() {
+  const { locale } = useI18n();
+  return locale === 'es' ? <PrivacyEs /> : <PrivacyEn />;
+}
+
+export function TermsPage() {
+  const { locale } = useI18n();
+  return locale === 'es' ? <TermsEs /> : <TermsEn />;
+}
+
+function PrivacyEs() {
   return (
     <article className="cf-card prose">
       <h1>Política de privacidad</h1>
-      <p className="cf-muted">Última actualización: octubre de 2026.</p>
+      <p className="cf-muted">Última actualización: noviembre de 2026.</p>
 
       <h2>Qué hace Confinet</h2>
       <p>
@@ -87,7 +101,89 @@ export function PrivacyPage() {
   );
 }
 
-export function TermsPage() {
+function PrivacyEn() {
+  return (
+    <article className="cf-card prose">
+      <h1>Privacy policy</h1>
+      <p className="cf-muted">Last updated: November 2026.</p>
+
+      <h2>What Confinet does</h2>
+      <p>
+        Confinet analyzes web pages to estimate how reliable their content is. It only analyzes a
+        page when you ask it to (or, if you turn it on, automatically on news sites).
+      </p>
+
+      {MODE === 'static' && (
+        <>
+          <h2>This version has no server</h2>
+          <ul>
+            <li>
+              The analysis happens <strong>in your browser</strong>. Your history and settings are
+              stored only there (local storage) and are not sent to Confinet.
+            </li>
+            <li>
+              If you analyze a pasted link, the page is downloaded through <strong>Puter</strong>{' '}
+              with your account (its privacy policy applies to that download). With the extension,
+              the page is read directly.
+            </li>
+            <li>
+              If you turn on AI, the article text is sent <strong>only</strong> to the provider you
+              choose (Puter or Ollama Cloud), with your account or your API key. Your Ollama key is
+              stored only in this browser.
+            </li>
+            <li>The domain age is looked up on the public rdap.org service.</li>
+          </ul>
+          <p>The following applies only to the self-hosted version with a server.</p>
+        </>
+      )}
+
+      <h2>What data we process</h2>
+      <ul>
+        <li>
+          <strong>The analyzed page</strong>: the article URL, title and text are sent to our server
+          to compute the score. We store the URL, the title, the score and the generated summary;{' '}
+          <strong>we do not store the full text</strong> of the article.
+        </li>
+        <li>
+          <strong>AI providers</strong>: the article text may be sent to a language model provider
+          (for example Google Gemini, Groq or Cloudflare Workers AI) for analysis. Some free tiers
+          of these providers may use the data to improve their services. If you set up your own key,
+          your provider is used.
+        </li>
+        <li>
+          <strong>Account</strong> (optional): name and email from your sign-in provider (Google or
+          GitHub) and your analysis history.
+        </li>
+        <li>
+          <strong>Quotas</strong>: to limit anonymous usage we store an identifier derived from your
+          IP with a hash function; we do not store your IP in plain text.
+        </li>
+        <li>
+          <strong>Your own AI keys</strong>: they are stored encrypted (AES-256-GCM) and never
+          shown.
+        </li>
+      </ul>
+
+      <h2>What we don't do</h2>
+      <ul>
+        <li>We don't sell data or show ads.</li>
+        <li>
+          We don't record your browsing history: the extension sends nothing without an analysis.
+        </li>
+        <li>We don't use third-party cookies or trackers.</li>
+      </ul>
+
+      <h2>Your rights</h2>
+      <p>
+        You can delete your history at any time from the app and disconnect the extension from
+        "Account". To delete your account and all its data, contact us through the project
+        repository.
+      </p>
+    </article>
+  );
+}
+
+function TermsEs() {
   return (
     <article className="cf-card prose">
       <h1>Términos de uso</h1>
@@ -103,6 +199,27 @@ export function TermsPage() {
       <p>
         Si crees que una puntuación es incorrecta, usa el botón «¿La puntuación no te parece
         correcta?» en el resultado: revisamos los avisos.
+      </p>
+    </article>
+  );
+}
+
+function TermsEn() {
+  return (
+    <article className="cf-card prose">
+      <h1>Terms of use</h1>
+      <p>
+        Confinet offers an <strong>automatic, indicative estimate</strong> of how reliable a piece
+        of content is. It is not a fact-check or a final judgment on any outlet or person. Scores
+        may contain errors: always check the information against other sources.
+      </p>
+      <p>
+        The service is offered free of charge, "as is", without warranties, and with daily usage
+        limits. Do not use it to automate bulk requests.
+      </p>
+      <p>
+        If you think a score is wrong, use the "Doesn't the score look right?" button on the result:
+        we review the reports.
       </p>
     </article>
   );

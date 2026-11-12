@@ -1,3 +1,5 @@
+import type { MessageKey } from '@confinet/i18n';
+import { useI18n } from '@confinet/i18n/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState, type FormEvent } from 'react';
 import { listOllamaModels, listPuterModels, type ModelOption } from '../backends/static/ai';
@@ -10,20 +12,25 @@ import {
   type AiSettings,
 } from '../backends/static/settings';
 import { clearHistory, getHistory } from '../backends/static/store';
+import { LanguageCard } from '../LanguageCard';
 
-const PROVIDER_LABELS: Record<AiProvider, string> = {
-  none: 'Ninguno (solo heurísticas)',
-  puter: 'Puter',
-  'ollama-cloud': 'Ollama Cloud',
-};
+const PROVIDERS: AiProvider[] = ['none', 'puter', 'ollama-cloud'];
+
+function useProviderLabel() {
+  const { t } = useI18n();
+  return (p: AiProvider) =>
+    p === 'none' ? t('staticAccount.providerNone') : p === 'puter' ? 'Puter' : 'Ollama Cloud';
+}
 
 /** «Cuenta» en la versión sin servidor: todo se guarda en este navegador. */
 export function StaticAccountPage() {
+  const { t } = useI18n();
   return (
     <div className="cf-stack">
-      <h1 style={{ margin: 0, fontSize: 22 }}>Cuenta y ajustes</h1>
+      <h1 style={{ margin: 0, fontSize: 22 }}>{t('staticAccount.title')}</h1>
       <PuterCard />
       <AiCard />
+      <LanguageCard />
       <LocalDataCard />
     </div>
   );
@@ -34,6 +41,7 @@ function usePuterSession() {
 }
 
 function PuterCard() {
+  const { t, rich, errorText } = useI18n();
   const queryClient = useQueryClient();
   const { data: signedIn, isLoading } = usePuterSession();
   // Precargamos puter.js para que la ventana de login se abra dentro del clic (si no, el
@@ -48,20 +56,18 @@ function PuterCard() {
   return (
     <section className="cf-card cf-stack" aria-labelledby="puter-title">
       <h2 className="cf-h2" id="puter-title">
-        Sesión de Puter
+        {t('staticAccount.puterTitle')}
       </h2>
       <p className="cf-muted cf-small" style={{ margin: 0 }}>
-        Esta versión de Confinet no tiene servidor. Para analizar un enlace que pegues aquí, la
-        página se descarga a través de <strong>Puter</strong> (gratis, con tu propia cuenta). Si
-        usas la extensión de Confinet no hace falta: la extensión lee la página directamente.
+        {rich('staticAccount.puterIntro', { b: (s) => <strong>{s}</strong> })}
       </p>
       {isLoading ? (
-        <span className="cf-muted cf-small">Comprobando…</span>
+        <span className="cf-muted cf-small">{t('staticAccount.checking')}</span>
       ) : signedIn ? (
         <div className="cf-row" style={{ justifyContent: 'space-between' }}>
-          <span>✓ Sesión de Puter iniciada</span>
+          <span>{t('staticAccount.puterSignedIn')}</span>
           <button className="cf-btn" onClick={() => signOut.mutate()}>
-            Cerrar sesión de Puter
+            {t('staticAccount.puterSignOut')}
           </button>
         </div>
       ) : (
@@ -70,13 +76,12 @@ function PuterCard() {
           onClick={() => signIn.mutate()}
           disabled={signIn.isPending}
         >
-          {signIn.isPending ? 'Abriendo Puter…' : 'Iniciar sesión con Puter'}
+          {signIn.isPending ? t('staticAccount.puterOpening') : t('staticAccount.puterSignIn')}
         </button>
       )}
       {signIn.error && (
         <span className="error cf-small">
-          No se pudo iniciar sesión: {signIn.error.message}. Si no se abrió ninguna ventana, permite
-          las ventanas emergentes para este sitio.
+          {t('staticAccount.puterSignInError', { error: errorText(signIn.error) })}
         </span>
       )}
     </section>
@@ -84,13 +89,16 @@ function PuterCard() {
 }
 
 function AiCard() {
+  const { t, rich, errorText } = useI18n();
+  const providerLabel = useProviderLabel();
   const queryClient = useQueryClient();
   const { data: puterSignedIn } = usePuterSession();
   const [saved, setSaved] = useState<AiSettings>(getAiSettings);
   const [provider, setProvider] = useState<AiProvider>(saved.provider);
   const [model, setModel] = useState(saved.model ?? '');
   const [ollamaKey, setOllamaKey] = useState(saved.ollamaKey ?? '');
-  const [message, setMessage] = useState<string | null>(null);
+  // Lo que se muestra junto a «Guardar»: un texto fijo o el error de la última acción.
+  const [message, setMessage] = useState<{ key: MessageKey } | { error: unknown } | null>(null);
 
   const models = useMutation<ModelOption[]>({
     mutationFn: () =>
@@ -118,10 +126,10 @@ function AiCard() {
             };
       saveAiSettings(next);
       setSaved(getAiSettings());
-      setMessage('Guardado. Se usará en los próximos análisis.');
+      setMessage({ key: 'staticAccount.saved' });
       queryClient.invalidateQueries({ queryKey: ['me'] });
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : String(error));
+      setMessage({ error });
     }
   };
 
@@ -131,11 +139,10 @@ function AiCard() {
     setSaved(next);
     setOllamaKey('');
     models.reset();
-    setMessage(
-      next.provider === 'none'
-        ? 'Key borrada. La IA queda desactivada hasta que elijas otro proveedor.'
-        : 'Key borrada de este navegador.',
-    );
+    setMessage({
+      key:
+        next.provider === 'none' ? 'staticAccount.keyForgottenAiOff' : 'staticAccount.keyForgotten',
+    });
     queryClient.invalidateQueries({ queryKey: ['me'] });
   };
 
@@ -146,23 +153,27 @@ function AiCard() {
   return (
     <form className="cf-card cf-stack" onSubmit={submit} aria-labelledby="ai-title">
       <h2 className="cf-h2" id="ai-title">
-        Proveedor de IA (opcional)
+        {t('staticAccount.aiTitle')}
       </h2>
       <p className="cf-muted cf-small" style={{ margin: 0 }}>
-        Sin IA, Confinet puntúa con la fuente y el contenido. Con IA añade el tercer pilar: tono,
-        falacias y afirmaciones sin respaldo. Tú eliges proveedor y modelo; no hay ninguno por
-        defecto.
+        {t('staticAccount.aiIntro')}
       </p>
       <div className="cf-note cf-small" data-testid="ai-current">
-        Actual: <strong>{PROVIDER_LABELS[saved.provider]}</strong>
-        {saved.model ? ` · ${saved.model}` : ''}
+        {rich(
+          'staticAccount.current',
+          { b: (s) => <strong>{s}</strong> },
+          {
+            provider: providerLabel(saved.provider),
+            model: saved.model ? ` · ${saved.model}` : '',
+          },
+        )}
       </div>
 
       <fieldset className="cf-stack" style={{ border: 0, padding: 0, margin: 0, gap: 8 }}>
         <legend className="field" style={{ marginBottom: 6 }}>
-          Proveedor
+          {t('staticAccount.provider')}
         </legend>
-        {(Object.keys(PROVIDER_LABELS) as AiProvider[]).map((p) => (
+        {PROVIDERS.map((p) => (
           <label key={p} className="cf-row" style={{ gap: 8 }}>
             <input
               type="radio"
@@ -171,36 +182,36 @@ function AiCard() {
               checked={provider === p}
               onChange={() => changeProvider(p)}
             />
-            {PROVIDER_LABELS[p]}
+            {providerLabel(p)}
           </label>
         ))}
       </fieldset>
 
       {provider === 'puter' && (
         <p className="cf-muted cf-small" style={{ margin: 0 }}>
-          Gratis para ti: el uso cuenta en tu propia cuenta de Puter, que incluye modelos de Claude,
-          GPT, Gemini y otros.{' '}
-          {!puterSignedIn && <strong>Inicia sesión en Puter (arriba) para ver los modelos.</strong>}
+          {t('staticAccount.puterHelp')}{' '}
+          {!puterSignedIn && <strong>{t('staticAccount.puterSignInFirst')}</strong>}
         </p>
       )}
 
       {provider === 'ollama-cloud' && (
         <>
           <p className="cf-muted cf-small" style={{ margin: 0 }}>
-            Modelos en la nube de Ollama (gpt-oss, DeepSeek, Qwen, GLM…). Se cobra por token a tu
-            cuenta de Ollama. Crea la key en{' '}
-            <a
-              className="cf-link"
-              href="https://ollama.com/settings/keys"
-              target="_blank"
-              rel="noreferrer"
-            >
-              ollama.com/settings/keys
-            </a>
-            . Se guarda solo en este navegador.
+            {rich('staticAccount.ollamaHelp', {
+              link: (s) => (
+                <a
+                  className="cf-link"
+                  href="https://ollama.com/settings/keys"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {s}
+                </a>
+              ),
+            })}
           </p>
           <label className="field">
-            API key de Ollama
+            {t('staticAccount.ollamaKey')}
             <input
               className="input"
               type="password"
@@ -211,11 +222,9 @@ function AiCard() {
           </label>
           {saved.ollamaKey && (
             <div className="cf-row" style={{ justifyContent: 'space-between' }}>
-              <span className="cf-muted cf-small">
-                Key guardada en este navegador; se conserva aunque cambies de proveedor.
-              </span>
+              <span className="cf-muted cf-small">{t('staticAccount.keySaved')}</span>
               <button type="button" className="cf-btn" onClick={forgetKey}>
-                Olvidar key
+                {t('staticAccount.forgetKey')}
               </button>
             </div>
           )}
@@ -230,11 +239,11 @@ function AiCard() {
             disabled={!canLoadModels || models.isPending}
             onClick={() => models.mutate()}
           >
-            {models.isPending ? 'Cargando modelos…' : 'Cargar modelos disponibles'}
+            {models.isPending ? t('staticAccount.loadingModels') : t('staticAccount.loadModels')}
           </button>
-          {models.error && <span className="error cf-small">{models.error.message}</span>}
+          {models.error && <span className="error cf-small">{errorText(models.error)}</span>}
           <label className="field">
-            Modelo
+            {t('staticAccount.model')}
             {models.data ? (
               <select
                 className="input"
@@ -243,7 +252,7 @@ function AiCard() {
                 required
               >
                 <option value="" disabled>
-                  Elige un modelo…
+                  {t('staticAccount.pickModel')}
                 </option>
                 {groups.map((g) =>
                   g ? (
@@ -258,7 +267,7 @@ function AiCard() {
             ) : (
               <input
                 className="input"
-                placeholder="Carga la lista o escribe el nombre exacto"
+                placeholder={t('staticAccount.modelPlaceholder')}
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
                 required
@@ -268,9 +277,13 @@ function AiCard() {
         </div>
       )}
 
-      {message && <span className="cf-small">{message}</span>}
+      {message && (
+        <span className="cf-small">
+          {'key' in message ? t(message.key) : errorText(message.error)}
+        </span>
+      )}
       <button className="cf-btn cf-btn-primary" type="submit">
-        Guardar
+        {t('common.save')}
       </button>
     </form>
   );
@@ -283,10 +296,11 @@ const modelOption = (m: ModelOption) => (
 );
 
 function LocalDataCard() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const [count, setCount] = useState(() => getHistory().length);
   const clear = () => {
-    if (!confirm('¿Borrar todo el historial de este navegador?')) return;
+    if (!confirm(t('staticAccount.clearConfirm'))) return;
     clearHistory();
     setCount(0);
     queryClient.invalidateQueries({ queryKey: ['history'] });
@@ -294,14 +308,13 @@ function LocalDataCard() {
   return (
     <section className="cf-card cf-stack" aria-labelledby="data-title">
       <h2 className="cf-h2" id="data-title">
-        Datos en este navegador
+        {t('staticAccount.dataTitle')}
       </h2>
       <p className="cf-muted cf-small" style={{ margin: 0 }}>
-        Tu historial ({count} análisis) y tus ajustes se guardan solo en este navegador. No se
-        envían a ningún servidor de Confinet ni se sincronizan entre dispositivos.
+        {t('staticAccount.dataText', { n: count })}
       </p>
       <button className="cf-btn" onClick={clear} disabled={count === 0}>
-        Borrar historial
+        {t('staticAccount.clearHistory')}
       </button>
     </section>
   );

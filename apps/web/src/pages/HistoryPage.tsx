@@ -1,3 +1,5 @@
+import { formatDate } from '@confinet/i18n';
+import { useI18n } from '@confinet/i18n/react';
 import { colorFor } from '@confinet/ui';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
@@ -5,6 +7,7 @@ import { api, MODE } from '../api';
 import { useMe } from '../Layout';
 
 export function HistoryPage() {
+  const { t, locale } = useI18n();
   const { data: me, isLoading: loadingMe } = useMe();
   const queryClient = useQueryClient();
   const history = useInfiniteQuery({
@@ -24,20 +27,18 @@ export function HistoryPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
   });
 
-  if (loadingMe) return <p className="cf-muted">Cargando…</p>;
+  if (loadingMe) return <p className="cf-muted">{t('common.loading')}</p>;
   if (MODE !== 'static' && !me?.user) {
     return (
       <div className="cf-card cf-stack">
-        <strong>Inicia sesión para guardar tu historial</strong>
-        <span className="cf-muted">
-          Tu historial se sincroniza entre la extensión del navegador y esta app.
-        </span>
+        <strong>{t('history.signInTitle')}</strong>
+        <span className="cf-muted">{t('history.signInText')}</span>
         <Link
           to="/cuenta"
           className="cf-btn cf-btn-primary"
           style={{ textAlign: 'center', textDecoration: 'none' }}
         >
-          Iniciar sesión
+          {t('common.signIn')}
         </Link>
       </div>
     );
@@ -48,23 +49,23 @@ export function HistoryPage() {
   return (
     <div className="cf-stack">
       <div className="cf-row" style={{ justifyContent: 'space-between' }}>
-        <h1 style={{ margin: 0, fontSize: 22 }}>Historial</h1>
+        <h1 style={{ margin: 0, fontSize: 22 }}>{t('history.title')}</h1>
         {items.length > 0 && (
           <button
             className="cf-btn"
-            onClick={() => confirm('¿Borrar todo el historial?') && clear.mutate()}
+            onClick={() => confirm(t('history.clearConfirm')) && clear.mutate()}
             disabled={clear.isPending}
           >
-            Borrar todo
+            {t('history.clearAll')}
           </button>
         )}
       </div>
 
       <div className="cf-card">
-        {history.isLoading && <p className="cf-muted">Cargando…</p>}
+        {history.isLoading && <p className="cf-muted">{t('common.loading')}</p>}
         {!history.isLoading && items.length === 0 && (
           <p className="cf-muted" style={{ margin: 0 }}>
-            Aún no has analizado nada.
+            {t('history.empty')}
           </p>
         )}
         {items.map((item) => (
@@ -82,11 +83,16 @@ export function HistoryPage() {
                   <strong>{item.title || item.url}</strong>
                 </div>
                 <div className="cf-muted cf-small">
-                  {item.domain} · {new Date(item.viewedAt).toLocaleString('es')}
+                  {item.domain} ·{' '}
+                  {formatDate(locale, item.viewedAt, { dateStyle: 'short', timeStyle: 'short' })}
                 </div>
               </span>
             </Link>
-            <button className="cf-btn" aria-label="Eliminar" onClick={() => remove.mutate(item.id)}>
+            <button
+              className="cf-btn"
+              aria-label={t('common.delete')}
+              onClick={() => remove.mutate(item.id)}
+            >
               ✕
             </button>
           </div>
@@ -97,7 +103,7 @@ export function HistoryPage() {
             onClick={() => history.fetchNextPage()}
             disabled={history.isFetchingNextPage}
           >
-            Cargar más
+            {t('history.loadMore')}
           </button>
         )}
       </div>

@@ -4,6 +4,9 @@
  *
  * No hay proveedor ni modelo por defecto: sin elección del usuario, no se usa IA.
  */
+
+import { AppError } from '@confinet/i18n';
+
 export type AiProvider = 'none' | 'puter' | 'ollama-cloud';
 
 export interface AiSettings {
@@ -30,10 +33,10 @@ export function getAiSettings(): AiSettings {
 
 export function saveAiSettings(settings: AiSettings) {
   if (settings.provider !== 'none' && !settings.model) {
-    throw new Error('Elige un modelo antes de guardar.');
+    throw new AppError('error.settings.pickModel');
   }
   if (settings.provider === 'ollama-cloud' && !settings.ollamaKey) {
-    throw new Error('Pega tu API key de Ollama.');
+    throw new AppError('error.settings.pasteKey');
   }
   const previous = getAiSettings();
   const ollamaKey = settings.ollamaKey || previous.ollamaKey;

@@ -13,6 +13,8 @@ test.beforeAll(async () => {
   // Chromium aislado con la extensión cargada, como si la hubiera instalado un usuario.
   context = await chromium.launchPersistentContext('', {
     channel: 'chromium',
+    // Los textos de los tests están en español.
+    locale: 'es-ES',
     args: [`--disable-extensions-except=${EXTENSION_PATH}`, `--load-extension=${EXTENSION_PATH}`],
   });
   const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
@@ -84,6 +86,13 @@ test('puntúa la noticia en local y la pasa a la PWA para el análisis completo'
 
   await pwa.goto('http://localhost:4174/confinet/historial');
   await expect(pwa.getByText('Un estudio confirma la eficacia de la vacuna')).toBeVisible();
+
+  // 6. Con el idioma en inglés (Opciones), el popup cambia de idioma.
+  await ext.evaluate(() => chrome.storage.local.set({ locale: 'en' }));
+  const popupEn = await extensionPage(`popup.html?tabId=${tabId}`);
+  await expect(popupEn.getByText('Quick estimate (content only)')).toBeVisible();
+  await expect(popupEn.getByRole('button', { name: 'Full analysis in Confinet' })).toBeVisible();
+  await ext.evaluate(() => chrome.storage.local.remove('locale'));
 });
 
 test('rechaza páginas internas del navegador', async () => {
@@ -92,5 +101,5 @@ test('rechaza páginas internas del navegador', async () => {
     const tab = await chrome.tabs.create({ url: 'chrome://version' });
     return chrome.runtime.sendMessage({ type: 'analyze', tabId: tab.id });
   });
-  expect(reply).toEqual({ ok: false, error: 'Esta página no se puede analizar.' });
+  expect(reply).toEqual({ ok: false, error: 'No se puede analizar esta página.' });
 });

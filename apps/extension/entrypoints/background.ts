@@ -1,5 +1,7 @@
+import { translate } from '@confinet/i18n';
 import { analyzeTab, isAnalyzableUrl, looksLikeArticle } from '../lib/analyze';
 import { APP_URL, getSettings, saveSettings } from '../lib/config';
+import { getLocale } from '../lib/locale';
 import { clearTabState, type Message } from '../lib/state';
 import { checkForUpdate } from '../lib/updates';
 
@@ -17,8 +19,10 @@ export default defineBackground(() => {
     if (message.type !== 'analyze') return;
     browser.tabs
       .get(message.tabId)
-      .then((tab) => {
-        if (!isAnalyzableUrl(tab.url)) throw new Error('Esta página no se puede analizar.');
+      .then(async (tab) => {
+        if (!isAnalyzableUrl(tab.url)) {
+          throw new Error(translate(await getLocale(), 'ext.cannotAnalyze'));
+        }
         return analyzeTab(message.tabId, tab.url, { force: message.force });
       })
       .then(() => sendResponse({ ok: true }))

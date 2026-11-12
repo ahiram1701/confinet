@@ -178,6 +178,21 @@ body {
   color: var(--cf-muted);
   margin: 0 8px;
 }
+.lang-switch {
+  margin-left: 8px;
+}
+.lang-switch button {
+  background: none;
+  border: 0;
+  padding: 4px 6px;
+  font: inherit;
+  color: var(--cf-muted);
+  cursor: pointer;
+}
+.lang-switch button[aria-pressed='true'] {
+  color: var(--cf-text);
+  font-weight: 600;
+}
 .prose h1 {
   font-size: 24px;
 }

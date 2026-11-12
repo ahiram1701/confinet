@@ -1,14 +1,18 @@
 import '@confinet/ui/styles.css';
+import { LOCALE_NAMES, LOCALES, type MessageKey } from '@confinet/i18n';
+import { I18nProvider, useI18n, type LocalePreference } from '@confinet/i18n/react';
 import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { APP_URL, BACKEND, getSettings, saveSettings, type Settings } from '../../lib/config';
+import { extensionPreference } from '../../lib/locale';
 
 const SITE_ORIGINS = ['https://*/*', 'http://*/*'];
 
 function Options() {
+  const { t, preference, setPreference } = useI18n();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [manualToken, setManualToken] = useState('');
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<MessageKey | null>(null);
 
   const reload = () => getSettings().then(setSettings);
   useEffect(() => {
@@ -27,18 +31,17 @@ function Options() {
     });
 
   const saveManual = async () => {
-    if (!manualToken.trim().startsWith('cnf_'))
-      return setMessage('El código debe empezar por "cnf_".');
+    if (!manualToken.trim().startsWith('cnf_')) return setMessage('ext.tokenPrefix');
     await saveSettings({ token: manualToken.trim() });
     setManualToken('');
-    setMessage('Cuenta conectada.');
+    setMessage('ext.accountConnected');
   };
 
   const toggleAuto = async (enabled: boolean) => {
     if (enabled) {
       // Pedimos permiso sobre los sitios solo si el usuario activa el modo automático.
       const granted = await browser.permissions.request({ origins: SITE_ORIGINS });
-      if (!granted) return setMessage('Sin permiso no se puede analizar automáticamente.');
+      if (!granted) return setMessage('ext.noPermission');
     } else {
       await browser.permissions.remove({ origins: SITE_ORIGINS });
     }
@@ -48,14 +51,14 @@ function Options() {
 
   return (
     <div className="cf-root cf-stack" style={{ maxWidth: 560, margin: '32px auto', padding: 16 }}>
-      <h1 style={{ margin: 0 }}>Confinet — Opciones</h1>
+      <h1 style={{ margin: 0 }}>{t('ext.optionsTitle')}</h1>
 
       {BACKEND === 'api' && (
         <section className="cf-card cf-stack">
-          <h2 className="cf-h2">Cuenta</h2>
+          <h2 className="cf-h2">{t('ext.account')}</h2>
           {settings.token ? (
             <>
-              <span>✓ Extensión conectada a tu cuenta de Confinet.</span>
+              <span>{t('ext.connected')}</span>
               <div className="cf-row">
                 <a
                   className="cf-btn"
@@ -64,24 +67,21 @@ function Options() {
                   rel="noreferrer"
                   style={{ textDecoration: 'none' }}
                 >
-                  Ver historial
+                  {t('ext.viewHistory')}
                 </a>
                 <button className="cf-btn" onClick={() => saveSettings({ token: null })}>
-                  Desconectar
+                  {t('ext.disconnect')}
                 </button>
               </div>
             </>
           ) : (
             <>
-              <span className="cf-muted">
-                Sin cuenta puedes usar Confinet con un límite diario pequeño. Con cuenta tendrás más
-                análisis con IA y el historial sincronizado con la app.
-              </span>
+              <span className="cf-muted">{t('ext.noAccount')}</span>
               <button className="cf-btn cf-btn-primary" onClick={connect}>
-                Conectar con mi cuenta
+                {t('ext.connectMyAccount')}
               </button>
               <details className="cf-details">
-                <summary className="cf-small">¿No funciona? Pega el código manualmente</summary>
+                <summary className="cf-small">{t('ext.manualToken')}</summary>
                 <div className="cf-row" style={{ marginTop: 8 }}>
                   <input
                     style={{
@@ -97,7 +97,7 @@ function Options() {
                     onChange={(e) => setManualToken(e.target.value)}
                   />
                   <button className="cf-btn" onClick={saveManual}>
-                    Guardar
+                    {t('common.save')}
                   </button>
                 </div>
               </details>
@@ -107,7 +107,7 @@ function Options() {
       )}
 
       <section className="cf-card cf-stack">
-        <h2 className="cf-h2">Análisis automático</h2>
+        <h2 className="cf-h2">{t('ext.autoTitle')}</h2>
         <label className="cf-row" style={{ alignItems: 'flex-start' }}>
           <input
             type="checkbox"
@@ -115,21 +115,36 @@ function Options() {
             onChange={(e) => toggleAuto(e.target.checked)}
           />
           <span>
-            Analizar automáticamente los artículos que abro (sin IA).
-            <div className="cf-muted cf-small">
-              Requiere permiso para leer las páginas que visitas. Solo se envían a Confinet las
-              páginas con aspecto de artículo. Desactivado, Confinet solo actúa cuando pulsas su
-              icono.
-            </div>
+            {t('ext.autoLabel')}
+            <div className="cf-muted cf-small">{t('ext.autoHelp')}</div>
           </span>
         </label>
       </section>
 
-      {message && <div className="cf-note">{message}</div>}
+      <section className="cf-card cf-stack">
+        <h2 className="cf-h2" id="language-title">
+          {t('language.title')}
+        </h2>
+        <select
+          aria-labelledby="language-title"
+          value={preference}
+          onChange={(e) => setPreference(e.target.value as LocalePreference)}
+        >
+          <option value="auto">{t('language.auto')}</option>
+          {LOCALES.map((l) => (
+            <option key={l} value={l} lang={l}>
+              {LOCALE_NAMES[l]}
+            </option>
+          ))}
+        </select>
+        <span className="cf-muted cf-small">{t('language.help')}</span>
+      </section>
+
+      {message && <div className="cf-note">{t(message)}</div>}
 
       <p className="cf-muted cf-small">
         <a className="cf-link" href={`${APP_URL}/privacidad`} target="_blank" rel="noreferrer">
-          Política de privacidad
+          {t('ext.privacy')}
         </a>
       </p>
     </div>
@@ -138,6 +153,8 @@ function Options() {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Options />
+    <I18nProvider store={extensionPreference}>
+      <Options />
+    </I18nProvider>
   </StrictMode>,
 );

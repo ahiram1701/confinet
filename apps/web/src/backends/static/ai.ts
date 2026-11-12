@@ -1,11 +1,12 @@
 import { LlmAnalysisSchema, type LlmAnalysis } from '@confinet/core';
 import {
+  buildInstructions,
   buildPrompt,
-  INSTRUCTIONS,
   jsonOnlySuffix,
   parseJsonLoose,
   type ArticleInput,
 } from '@confinet/llm/prompt';
+import { AppError } from '@confinet/i18n';
 import { z } from 'zod';
 import { isPuterSignedIn, loadPuter, puterFetch } from './puter';
 import type { AiSettings } from './settings';
@@ -25,11 +26,7 @@ export function parseAnalysis(text: string): LlmAnalysis {
   if (json === null) {
     // Mostramos el principio de la respuesta: es lo que permite saber qué hizo el modelo.
     const snippet = text.trim().replace(/\s+/g, ' ').slice(0, 120);
-    throw new Error(
-      snippet
-        ? `El modelo respondió sin JSON: "${snippet}…"`
-        : 'El modelo devolvió una respuesta vacía.',
-    );
+    throw snippet ? new AppError('error.ai.noJson', { snippet }) : new AppError('error.ai.empty');
   }
   const parsed = LlmAnalysisSchema.safeParse(json);
   if (!parsed.success) {
@@ -37,29 +34,29 @@ export function parseAnalysis(text: string): LlmAnalysis {
       .slice(0, 2)
       .map((i) => `${i.path.join('.')}: ${i.message}`)
       .join('; ');
-    throw new Error(`El modelo no devolvió un análisis válido (${detail}).`);
+    throw new AppError('error.ai.invalid', { detail });
   }
   return parsed.data;
 }
 
 export async function runAi(settings: AiSettings, article: ArticleInput): Promise<LlmAnalysis> {
-  if (!settings.model) throw new Error('No hay modelo elegido.');
+  if (!settings.model) throw new AppError('error.ai.noModel');
   if (settings.provider === 'puter') return runPuter(settings.model, article);
   if (settings.provider === 'ollama-cloud') {
-    if (!settings.ollamaKey) throw new Error('Falta la API key de Ollama.');
+    if (!settings.ollamaKey) throw new AppError('error.ai.noOllamaKey');
     return runOllama(settings.model, settings.ollamaKey, article);
   }
-  throw new Error('No hay proveedor de IA elegido.');
+  throw new AppError('error.ai.noProvider');
 }
 
 // ── Puter ────────────────────────────────────────────────────────────────────
 async function runPuter(model: string, article: ArticleInput): Promise<LlmAnalysis> {
   const puter = await loadPuter();
   const messages = [
-    { role: 'system', content: INSTRUCTIONS },
+    { role: 'system', content: buildInstructions(article.locale) },
     { role: 'user', content: buildPrompt(article) },
   ];
-  const chat = (extra: Record<string, unknown>, sys = INSTRUCTIONS) =>
+  const chat = (extra: Record<string, unknown>, sys = buildInstructions(article.locale)) =>
     puter.ai.chat(
       [{ ...messages[0]!, content: sys }, messages[1]!] as never,
       {
@@ -78,7 +75,7 @@ async function runPuter(model: string, article: ArticleInput): Promise<LlmAnalys
     return parseAnalysis(contentText(res));
   } catch {
     // …si no, pedimos el JSON en el propio prompt.
-    const res = await chat({}, INSTRUCTIONS + jsonOnlySuffix(SCHEMA));
+    const res = await chat({}, buildInstructions(article.locale) + jsonOnlySuffix(SCHEMA));
     return parseAnalysis(contentText(res));
   }
 }
@@ -90,7 +87,7 @@ function contentText(res: { message?: { content?: unknown } }): string {
   if (Array.isArray(content)) {
     return content.map((b) => (typeof b?.text === 'string' ? b.text : '')).join('');
   }
-  throw new Error('Respuesta vacía del modelo.');
+  throw new AppError('error.ai.empty');
 }
 
 export async function listPuterModels(): Promise<ModelOption[]> {
@@ -120,18 +117,15 @@ async function ollamaFetch(path: string, key: string, init: RequestInit = {}): P
     res = await fetch(`${OLLAMA_URL}${path}`, req);
   } catch (error) {
     if (!(await isPuterSignedIn())) {
-      throw new Error(
-        'El navegador bloqueó la conexión directa con Ollama. Inicia sesión en Puter para enviarla a través de su proxy.',
-        { cause: error },
-      );
+      throw new AppError('error.ollama.cors', undefined, { cause: error });
     }
     res = await puterFetch(`${OLLAMA_URL}${path}`, req);
   }
-  if (res.status === 401) throw new Error('Ollama rechazó la API key (401). Revísala en Cuenta.');
+  if (res.status === 401) throw new AppError('error.ollama.unauthorized');
   if (res.status === 402 || res.status === 429) {
-    throw new Error(`Ollama no aceptó la petición (${res.status}): revisa tu saldo o límite.`);
+    throw new AppError('error.ollama.limit', { status: res.status });
   }
-  if (!res.ok) throw new Error(`Error de Ollama (${res.status}).`);
+  if (!res.ok) throw new AppError('error.ollama.http', { status: res.status });
   return res;
 }
 
@@ -141,7 +135,7 @@ interface OllamaChat {
 }
 
 async function runOllama(model: string, key: string, article: ArticleInput) {
-  const chat = async (extra: Record<string, unknown>, sys = INSTRUCTIONS) => {
+  const chat = async (extra: Record<string, unknown>, sys = buildInstructions(article.locale)) => {
     const res = await ollamaFetch('/api/chat', key, {
       method: 'POST',
       body: JSON.stringify({
@@ -165,7 +159,7 @@ async function runOllama(model: string, key: string, article: ArticleInput) {
     return parseOllama(first);
   } catch {
     // …y si el modelo la ignora (pasa con varios modelos que razonan), el JSON se pide en el prompt.
-    return parseOllama(await chat({}, INSTRUCTIONS + jsonOnlySuffix(SCHEMA)));
+    return parseOllama(await chat({}, buildInstructions(article.locale) + jsonOnlySuffix(SCHEMA)));
   }
 }
 
@@ -178,12 +172,7 @@ function parseOllama(data: OllamaChat): LlmAnalysis {
   } catch (error) {
     if (thinking && parseJsonLoose(thinking) !== null) return parseAnalysis(thinking);
     if (data.done_reason === 'length') {
-      throw new Error(
-        'La respuesta del modelo se cortó antes de terminar. Prueba con otro modelo.',
-        {
-          cause: error,
-        },
-      );
+      throw new AppError('error.ai.truncated', undefined, { cause: error });
     }
     throw error;
   }

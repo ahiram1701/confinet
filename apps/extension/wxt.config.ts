@@ -17,12 +17,12 @@ export default defineConfig({
   outDir: E2E ? '.output-e2e' : '.output',
   manifestVersion: 3,
   manifest: {
-    name: 'Confinet — ¿Te puedes fiar?',
+    // Nombre y descripción en el idioma del navegador: public/_locales/<idioma>/messages.json.
+    name: '__MSG_extName__',
     short_name: 'Confinet',
     ...(VERSION ? { version: VERSION } : {}),
-    description:
-      'Mide la confianza de la información que lees: fuente, contenido y análisis con IA.',
-    default_locale: undefined,
+    description: '__MSG_extDescription__',
+    default_locale: 'es',
     // Permisos mínimos: solo actuamos sobre la pestaña cuando el usuario abre la extensión.
     // `alarms`: comprobar una vez al día si hay versión nueva (no muestra ningún aviso al instalar).
     permissions: ['activeTab', 'scripting', 'storage', 'alarms'],
@@ -31,6 +31,11 @@ export default defineConfig({
     optional_host_permissions: ['https://*/*', 'http://*/*'],
     // La PWA envía el token de sesión a la extensión con chrome.runtime.sendMessage.
     externally_connectable: { matches: [`${APP_URL}/*`] },
-    action: { default_title: 'Analizar con Confinet' },
+  },
+  hooks: {
+    // WXT toma el texto del icono del <title> del popup; lo sustituimos por el traducido.
+    'build:manifestGenerated': (_wxt, manifest) => {
+      if (manifest.action) manifest.action.default_title = '__MSG_actionTitle__';
+    },
   },
 });

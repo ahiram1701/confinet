@@ -9,7 +9,8 @@ export default defineConfig({
   timeout: 60_000,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
-  use: { baseURL: `http://localhost:${WEB_PORT}`, trace: 'retain-on-failure' },
+  // Los textos de los tests están en español: fijamos el idioma del navegador.
+  use: { baseURL: `http://localhost:${WEB_PORT}`, trace: 'retain-on-failure', locale: 'es-ES' },
   projects: [
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },

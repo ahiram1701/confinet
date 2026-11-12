@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@confinet/core": "workspace:*"
+    "@confinet/core": "workspace:*",
+    "@confinet/i18n": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=19"

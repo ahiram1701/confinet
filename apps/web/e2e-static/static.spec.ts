@@ -52,6 +52,30 @@ test('analiza la página que envía la extensión, sin IA por defecto', async ({
   await expect(page.getByText('El paro baja por tercer mes consecutivo')).toBeVisible();
 });
 
+test.describe('en inglés', () => {
+  test.use({ locale: 'en-US' });
+
+  test('la interfaz y el resultado se muestran en inglés, y se puede cambiar a español', async ({
+    page,
+  }) => {
+    await page.goto('./');
+    await expect(
+      page.getByRole('heading', { name: 'Can you trust what you are reading?' }),
+    ).toBeVisible();
+    await page.goto(await handoffUrl(page));
+    await expect(page).toHaveURL(/\/confinet\/resultado\//);
+    await expect(page.getByText('Breakdown')).toBeVisible();
+    await expect(page.getByText(/you have not chosen a provider/)).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+
+    // El mismo resultado guardado se vuelve a mostrar en español al cambiar de idioma.
+    await page.getByRole('button', { name: 'ES', exact: true }).click();
+    await expect(page.getByText('Desglose')).toBeVisible();
+    await expect(page.getByText(/no has elegido proveedor/)).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+  });
+});
+
 test('la cuenta muestra que no hay ningún proveedor de IA elegido', async ({ page }) => {
   await page.goto('cuenta');
   await expect(page.getByTestId('ai-current')).toContainText('Ninguno');

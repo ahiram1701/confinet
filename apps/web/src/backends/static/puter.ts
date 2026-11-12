@@ -1,3 +1,4 @@
+import { AppError } from '@confinet/i18n';
 import type { Puter } from '@heyputer/puter.js';
 
 /**
@@ -37,11 +38,9 @@ export async function puterFetch(url: string, init?: RequestInit): Promise<Respo
   return puter.net.fetch(url, init);
 }
 
-export class NeedsPuterError extends Error {
+export class NeedsPuterError extends AppError {
   constructor() {
-    super(
-      'Para analizar un enlace pegado aquí, inicia sesión en Puter (gratis) en «Cuenta», o usa la extensión de Confinet en la propia página.',
-    );
+    super('error.needsPuter');
     this.name = 'NeedsPuterError';
   }
 }

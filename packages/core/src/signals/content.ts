@@ -24,14 +24,14 @@ export function contentSignals(page: ExtractedPage): Signal[] {
 
   signals.push(
     page.author
-      ? signal('content.author', 1, `El artículo está firmado por "${page.author}".`)
-      : signal('content.author', 0, 'No se identifica a ningún autor.'),
+      ? signal('content.author', 1, 'signal.content.author.yes', { author: page.author })
+      : signal('content.author', 0, 'signal.content.author.no'),
   );
 
   signals.push(
     page.publishedAt
-      ? signal('content.date', 1, `Fecha de publicación visible: ${page.publishedAt}.`)
-      : signal('content.date', 0, 'No se indica cuándo se publicó.'),
+      ? signal('content.date', 1, 'signal.content.date.yes', { date: page.publishedAt })
+      : signal('content.date', 0, 'signal.content.date.no'),
   );
 
   // Fuentes externas: dominios distintos al del propio sitio.
@@ -46,9 +46,8 @@ export function contentSignals(page: ExtractedPage): Signal[] {
     signal(
       'content.citations',
       citations === 0 ? 0.15 : citations <= 2 ? 0.6 : 1,
-      citations === 0
-        ? 'No enlaza a ninguna fuente externa.'
-        : `Enlaza a ${citations} fuente(s) externa(s).`,
+      citations === 0 ? 'signal.content.citations.none' : 'signal.content.citations.some',
+      { n: citations },
       externalDomains.slice(0, 10),
     ),
   );
@@ -60,9 +59,8 @@ export function contentSignals(page: ExtractedPage): Signal[] {
     signal(
       'content.clickbait',
       1 - clickbaitHits.length * 0.4,
-      clickbaitHits.length === 0
-        ? 'El titular no usa fórmulas sensacionalistas.'
-        : 'El titular usa fórmulas típicas de "clickbait".',
+      clickbaitHits.length === 0 ? 'signal.content.clickbait.no' : 'signal.content.clickbait.yes',
+      undefined,
       clickbaitHits,
     ),
   );
@@ -73,9 +71,8 @@ export function contentSignals(page: ExtractedPage): Signal[] {
     signal(
       'content.shouting',
       1 - shoutingPenalty,
-      shoutingPenalty < 0.2
-        ? 'Uso moderado de mayúsculas y exclamaciones.'
-        : `Abuso de mayúsculas (${Math.round(capsRatio * 100)}% de palabras) o exclamaciones.`,
+      shoutingPenalty < 0.2 ? 'signal.content.shouting.ok' : 'signal.content.shouting.abuse',
+      { pct: Math.round(capsRatio * 100) },
     ),
   );
 
@@ -85,9 +82,8 @@ export function contentSignals(page: ExtractedPage): Signal[] {
       signal(
         'content.ads',
         1 - Math.max(0, adsPer1000 - COMMON_AD_ESTIMATE_PER_1000_WORDS) / 10,
-        page.adCount === 0
-          ? 'No se detecta publicidad intrusiva.'
-          : `${page.adCount} elemento(s) publicitario(s) detectado(s).`,
+        page.adCount === 0 ? 'signal.content.ads.none' : 'signal.content.ads.some',
+        { n: page.adCount },
       ),
     );
   }
@@ -96,9 +92,8 @@ export function contentSignals(page: ExtractedPage): Signal[] {
     signal(
       'content.length',
       page.wordCount < 150 ? 0.3 : page.wordCount < 400 ? 0.7 : 1,
-      page.wordCount < 150
-        ? `Contenido muy breve (${page.wordCount} palabras).`
-        : `${page.wordCount} palabras.`,
+      page.wordCount < 150 ? 'signal.content.length.short' : 'signal.content.length.ok',
+      { n: page.wordCount },
     ),
   );
 

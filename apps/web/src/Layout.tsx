@@ -1,3 +1,5 @@
+import { LOCALES } from '@confinet/i18n';
+import { useI18n } from '@confinet/i18n/react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, NavLink, Outlet } from 'react-router';
 import { api } from './api';
@@ -57,12 +59,13 @@ const icons = {
 };
 
 export function Layout() {
+  const { t, locale, setPreference } = useI18n();
   const { data: me } = useMe();
   const links = [
-    { to: '/', label: 'Analizar', icon: icons.analyze, end: true },
-    { to: '/historial', label: 'Historial', icon: icons.history },
-    { to: '/cuenta', label: 'Cuenta', icon: icons.account },
-    ...(me?.user?.isAdmin ? [{ to: '/admin', label: 'Admin', icon: icons.admin }] : []),
+    { to: '/', label: t('nav.analyze'), icon: icons.analyze, end: true },
+    { to: '/historial', label: t('nav.history'), icon: icons.history },
+    { to: '/cuenta', label: t('nav.account'), icon: icons.account },
+    ...(me?.user?.isAdmin ? [{ to: '/admin', label: t('nav.admin'), icon: icons.admin }] : []),
   ];
 
   return (
@@ -73,7 +76,7 @@ export function Layout() {
             <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" />
             Confinet
           </Link>
-          <nav className="topnav" aria-label="Principal">
+          <nav className="topnav" aria-label={t('nav.main')}>
             {links.map((l) => (
               <NavLink key={l.to} to={l.to} end={l.end}>
                 {l.label}
@@ -86,12 +89,25 @@ export function Layout() {
       <main className="app-main">
         <Outlet />
         <footer className="footer cf-small">
-          <Link to="/privacidad">Privacidad</Link>
-          <Link to="/terminos">Términos</Link>
+          <Link to="/privacidad">{t('nav.privacy')}</Link>
+          <Link to="/terminos">{t('nav.terms')}</Link>
+          <span className="lang-switch" role="group" aria-label={t('nav.language')}>
+            {LOCALES.map((l) => (
+              <button
+                key={l}
+                type="button"
+                lang={l}
+                aria-pressed={l === locale}
+                onClick={() => setPreference(l)}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </span>
         </footer>
       </main>
 
-      <nav className="tabbar" aria-label="Principal">
+      <nav className="tabbar" aria-label={t('nav.main')}>
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} end={l.end}>
             {l.icon}

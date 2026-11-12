@@ -1,3 +1,4 @@
+import { LOCALES, type MessageRef } from '@confinet/i18n';
 import { z } from 'zod';
 import type { LlmAnalysis } from './llm-schema';
 import type { FactCheckMatch, TrustScore } from './types';
@@ -23,6 +24,8 @@ export const AnalyzeRequestSchema = z.object({
   extracted: ExtractedPageSchema.optional(),
   /** Pedir explícitamente que no se use la IA (más rápido, sin consumir cuota). */
   skipAi: z.boolean().optional(),
+  /** Idioma en el que la IA escribe el resumen (el de la interfaz). Por defecto, español. */
+  locale: z.enum(LOCALES).optional(),
 });
 export type AnalyzeRequest = z.infer<typeof AnalyzeRequestSchema>;
 
@@ -35,8 +38,10 @@ export interface AnalyzeResponse {
   cached: boolean;
   trust: TrustScore;
   ai: (LlmAnalysis & { provider: string; model: string }) | null;
-  /** Motivo por el que no hay análisis IA (cuota, error, desactivado...). */
+  /** Motivo por el que no hay análisis IA (cuota, error, desactivado...), en español. */
   aiUnavailableReason?: string;
+  /** El mismo motivo como texto traducible, cuando se conoce. */
+  aiUnavailable?: MessageRef;
   factChecks: FactCheckMatch[];
 }
 

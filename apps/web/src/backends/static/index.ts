@@ -1,9 +1,11 @@
+import { AppError } from '@confinet/i18n';
 import { ApiError, type httpApi, type Me } from '../http';
 import { NeedsPuterError } from './puter';
 import * as store from './store';
 
 const unsupported = (): never => {
-  throw new ApiError(501, 'not_available', 'No disponible en la versión sin servidor.');
+  const e = new AppError('error.notAvailable');
+  throw new ApiError(501, 'not_available', e.message, { key: e.key });
 };
 
 /**
@@ -24,18 +26,22 @@ export const staticApi: typeof httpApi = {
       const { analyzeInBrowser } = await import('./analyze');
       return await analyzeInBrowser(body);
     } catch (error) {
-      if (error instanceof NeedsPuterError) throw new ApiError(428, 'needs_puter', error.message);
+      if (error instanceof NeedsPuterError) {
+        throw new ApiError(428, 'needs_puter', error.message, { key: error.key });
+      }
       throw new ApiError(
         400,
         'analyze_failed',
         error instanceof Error ? error.message : String(error),
+        error instanceof AppError ? { key: error.key, params: error.params } : undefined,
       );
     }
   },
   analysis: async (id) => {
     const result = store.getResult(id);
     if (!result) {
-      throw new ApiError(404, 'not_found', 'Este análisis no está guardado en este navegador.');
+      const e = new AppError('error.notSaved');
+      throw new ApiError(404, 'not_found', e.message, { key: e.key });
     }
     return result;
   },

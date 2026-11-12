@@ -23,6 +23,7 @@
     "@ai-sdk/openai": "^4.0.110",
     "@ai-sdk/openai-compatible": "^3.0.86",
     "@confinet/core": "workspace:*",
+    "@confinet/i18n": "workspace:*",
     "ai": "^7.0.164",
     "zod": "^4.6.7"
   }

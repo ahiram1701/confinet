@@ -12,6 +12,7 @@ import {
   type LlmAnalysis,
 } from '@confinet/core';
 import { extractFromDocument } from '@confinet/extract/dom';
+import { AppError, errorText, translate, type MessageRef } from '@confinet/i18n';
 import { runAi } from './ai';
 import { isPuterSignedIn, puterFetch } from './puter';
 import { lookupReputation } from './reputation';
@@ -23,7 +24,8 @@ import { saveResult } from './store';
  * misma extracción, señales y puntuación que la API, con la IA que elija el usuario.
  */
 export async function analyzeInBrowser(req: AnalyzeRequest): Promise<AnalyzeResponse> {
-  if (!isHttpUrl(req.url)) throw new Error('Solo se pueden analizar enlaces http(s).');
+  if (!isHttpUrl(req.url)) throw new AppError('error.onlyHttp');
+  const locale = req.locale ?? 'es';
   const url = new URL(req.url);
 
   // 1. Contenido: el que manda la extensión o, si no, descargado vía Puter (CORS).
@@ -39,14 +41,13 @@ export async function analyzeInBrowser(req: AnalyzeRequest): Promise<AnalyzeResp
   // 3. IA (solo si el usuario eligió proveedor y modelo)
   const settings = getAiSettings();
   let analysis: LlmAnalysis | null = null;
-  let aiUnavailableReason: string | undefined;
+  let aiUnavailable: MessageRef | undefined;
   if (req.skipAi) {
     // sin IA a propósito
   } else if (!isAiConfigured(settings)) {
-    aiUnavailableReason =
-      'Sin análisis con IA: no has elegido proveedor. Puedes activarlo en «Cuenta» (Puter u Ollama Cloud).';
+    aiUnavailable = { key: 'aiUnavailable.noProvider' };
   } else if (page.wordCount < 80) {
-    aiUnavailableReason = 'El texto es demasiado corto para analizarlo con IA.';
+    aiUnavailable = { key: 'aiUnavailable.tooShort' };
   } else {
     try {
       analysis = await runAi(settings, {
@@ -54,9 +55,14 @@ export async function analyzeInBrowser(req: AnalyzeRequest): Promise<AnalyzeResp
         title: page.title,
         text: page.text,
         lang: page.lang,
+        locale,
       });
     } catch (error) {
-      aiUnavailableReason = `La IA no respondió: ${error instanceof Error ? error.message : String(error)}`;
+      // El motivo concreto se guarda ya escrito en el idioma en que se analizó.
+      aiUnavailable = {
+        key: 'aiUnavailable.failed',
+        params: { reason: errorText(locale, error) },
+      };
     }
   }
 
@@ -84,7 +90,12 @@ export async function analyzeInBrowser(req: AnalyzeRequest): Promise<AnalyzeResp
     ai: analysis
       ? { ...analysis, provider: settings.provider, model: settings.model ?? '?' }
       : null,
-    ...(aiUnavailableReason ? { aiUnavailableReason } : {}),
+    ...(aiUnavailable
+      ? {
+          aiUnavailable,
+          aiUnavailableReason: translate('es', aiUnavailable.key, aiUnavailable.params),
+        }
+      : {}),
     factChecks: [],
   };
   saveResult(result);
@@ -93,7 +104,7 @@ export async function analyzeInBrowser(req: AnalyzeRequest): Promise<AnalyzeResp
 
 async function downloadAndExtract(url: string): Promise<ExtractedPage> {
   const res = await puterFetch(url, { headers: { accept: 'text/html' } });
-  if (!res.ok) throw new Error(`No se pudo descargar la página (HTTP ${res.status}).`);
+  if (!res.ok) throw new AppError('error.download', { status: res.status });
   const html = await res.text();
   // DOMParser crea un documento inerte: no ejecuta scripts ni carga recursos.
   const doc = new DOMParser().parseFromString(html, 'text/html');

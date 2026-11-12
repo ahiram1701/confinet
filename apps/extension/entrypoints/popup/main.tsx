@@ -1,10 +1,12 @@
 import '@confinet/ui/styles.css';
 import './popup.css';
+import { I18nProvider, useI18n } from '@confinet/i18n/react';
 import { LevelBadge, PillarBars, ScoreGauge, AnalysisView } from '@confinet/ui';
 import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { encodeHandoff } from '@confinet/core';
 import { APP_URL, BACKEND, getSettings } from '../../lib/config';
+import { extensionPreference } from '../../lib/locale';
 import { getTabState, onTabStateChange, type Message, type TabState } from '../../lib/state';
 import { getAvailableUpdate, type UpdateInfo } from '../../lib/updates';
 
@@ -12,6 +14,7 @@ const UPDATE_GUIDE =
   'https://github.com/ahiram1701/confinet/blob/main/docs/guia-de-uso.md#actualizaciones';
 
 function Popup() {
+  const { t, rich, locale } = useI18n();
   const [tabId, setTabId] = useState<number | null>(null);
   const [state, setState] = useState<TabState | null>(null);
   const [connected, setConnected] = useState(true);
@@ -52,7 +55,7 @@ function Popup() {
         <button
           className="cf-btn"
           onClick={() => browser.runtime.openOptionsPage()}
-          title="Opciones"
+          title={t('ext.options')}
         >
           ⚙
         </button>
@@ -60,13 +63,17 @@ function Popup() {
 
       {update && (
         <div className="cf-note cf-small" data-testid="update">
-          Hay una versión nueva de Confinet (<strong>{update.latest}</strong>).{' '}
+          {rich(
+            'ext.updateAvailable',
+            { b: (s) => <strong>{s}</strong> },
+            { version: update.latest },
+          )}{' '}
           <a className="cf-link" href={update.url} target="_blank" rel="noreferrer">
-            Descargar
+            {t('ext.download')}
           </a>{' '}
           ·{' '}
           <a className="cf-link" href={UPDATE_GUIDE} target="_blank" rel="noreferrer">
-            Cómo actualizar
+            {t('ext.howToUpdate')}
           </a>
         </div>
       )}
@@ -83,12 +90,12 @@ function Popup() {
             target="_blank"
             rel="noreferrer"
           >
-            Ver detalles / informar error
+            {t('ext.details')}
           </a>
           <button
             className="cf-btn"
             onClick={() => tabId != null && analyze(tabId, true)}
-            title="Volver a analizar"
+            title={t('ext.reanalyze')}
           >
             ↻
           </button>
@@ -100,20 +107,23 @@ function Popup() {
           className="cf-btn cf-btn-primary"
           onClick={async () => {
             // La página ya extraída viaja en el fragmento de la URL (no llega a ningún servidor).
-            const data = await encodeHandoff({ url: state.url, extracted: state.page });
+            const data = await encodeHandoff({ url: state.url, extracted: state.page, locale });
             await browser.tabs.create({ url: `${APP_URL}/analizar#data=${data}` });
           }}
         >
-          Análisis completo en Confinet
+          {t('ext.fullAnalysis')}
         </button>
       )}
 
       {BACKEND === 'api' && !connected && (
         <p className="cf-muted cf-small" style={{ margin: 0 }}>
-          <a className="cf-link" href="#" onClick={() => browser.runtime.openOptionsPage()}>
-            Conecta tu cuenta
-          </a>{' '}
-          para tener más análisis con IA e historial.
+          {rich('ext.connectAccount', {
+            link: (s) => (
+              <a className="cf-link" href="#" onClick={() => browser.runtime.openOptionsPage()}>
+                {s}
+              </a>
+            ),
+          })}
         </p>
       )}
     </div>
@@ -121,8 +131,9 @@ function Popup() {
 }
 
 function Body({ state }: { state: TabState | null }) {
+  const { t } = useI18n();
   if (!state || state.status === 'extracting')
-    return <p className="cf-muted">Leyendo la página…</p>;
+    return <p className="cf-muted">{t('ext.reading')}</p>;
 
   if (state.status === 'done') return <AnalysisView result={state.result} compact />;
 
@@ -135,7 +146,7 @@ function Body({ state }: { state: TabState | null }) {
           <div className="cf-stack" style={{ gap: 4, minWidth: 0 }}>
             <LevelBadge level={quick.level} />
             <span className="cf-small ellipsis">{state.title}</span>
-            <span className="cf-muted cf-small">Estimación rápida (solo contenido)</span>
+            <span className="cf-muted cf-small">{t('ext.quickEstimate')}</span>
           </div>
         </div>
       )}
@@ -146,13 +157,10 @@ function Body({ state }: { state: TabState | null }) {
       )}
       {state.status === 'local' && (
         <p className="cf-muted cf-small" style={{ margin: 0 }}>
-          Para añadir la reputación del medio, la antigüedad del dominio y (si la activaste) la IA,
-          abre el análisis completo.
+          {t('ext.localHint')}
         </p>
       )}
-      {state.status === 'quick' && (
-        <p className="cf-muted cf-small">Consultando reputación y análisis con IA…</p>
-      )}
+      {state.status === 'quick' && <p className="cf-muted cf-small">{t('ext.fetchingFull')}</p>}
       {state.status === 'error' && <div className="cf-note">{state.error}</div>}
     </div>
   );
@@ -160,6 +168,8 @@ function Body({ state }: { state: TabState | null }) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Popup />
+    <I18nProvider store={extensionPreference}>
+      <Popup />
+    </I18nProvider>
   </StrictMode>,
 );

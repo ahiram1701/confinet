@@ -1,3 +1,5 @@
+import type { MessageKey } from '@confinet/i18n';
+import { useI18n } from '@confinet/i18n/react';
 import { AnalysisView } from '@confinet/ui';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -5,22 +7,25 @@ import { Link, useParams } from 'react-router';
 import type { AnalyzeResponse } from '@confinet/core';
 import { api, MODE, REPO_URL } from '../api';
 
-const FEEDBACK_OPTIONS = [
-  { kind: 'too_high', label: 'Debería ser más baja' },
-  { kind: 'too_low', label: 'Debería ser más alta' },
-  { kind: 'wrong_signal', label: 'Alguna señal es incorrecta' },
-  { kind: 'other', label: 'Otro' },
+const FEEDBACK_OPTIONS: { kind: string; label: MessageKey }[] = [
+  { kind: 'too_high', label: 'result.feedbackTooHigh' },
+  { kind: 'too_low', label: 'result.feedbackTooLow' },
+  { kind: 'wrong_signal', label: 'result.feedbackWrongSignal' },
+  { kind: 'other', label: 'result.feedbackOther' },
 ];
 
 export function ResultPage() {
+  const { t, errorText } = useI18n();
   const { id = '' } = useParams();
   const { data, error, isLoading } = useQuery({
     queryKey: ['analysis', id],
     queryFn: () => api.analysis(id),
   });
 
-  if (isLoading) return <p className="cf-muted">Cargando…</p>;
-  if (error || !data) return <p className="error">{error?.message ?? 'No encontrado'}</p>;
+  if (isLoading) return <p className="cf-muted">{t('common.loading')}</p>;
+  if (error || !data) {
+    return <p className="error">{error ? errorText(error) : t('common.notFound')}</p>;
+  }
 
   return (
     <div className="cf-stack">
@@ -39,26 +44,26 @@ export function ResultPage() {
         }
       />
       <Link to="/" className="cf-btn" style={{ textAlign: 'center', textDecoration: 'none' }}>
-        Analizar otro enlace
+        {t('result.analyzeAnother')}
       </Link>
     </div>
   );
 }
 
 function FeedbackBox({ analysisId }: { analysisId: string }) {
+  const { t, errorText } = useI18n();
   const [kind, setKind] = useState<string | null>(null);
   const [comment, setComment] = useState('');
   const send = useMutation({
     mutationFn: () => api.feedback(analysisId, kind!, comment || undefined),
   });
 
-  if (send.isSuccess)
-    return <div className="cf-note cf-small">¡Gracias! Revisaremos tu aviso.</div>;
+  if (send.isSuccess) return <div className="cf-note cf-small">{t('result.feedbackThanks')}</div>;
 
   return (
     <details className="cf-card cf-details">
       <summary>
-        <strong>¿La puntuación no te parece correcta?</strong>
+        <strong>{t('result.feedbackTitle')}</strong>
       </summary>
       <div className="cf-stack" style={{ marginTop: 12 }}>
         <div className="cf-row" style={{ flexWrap: 'wrap', gap: 8 }}>
@@ -69,7 +74,7 @@ function FeedbackBox({ analysisId }: { analysisId: string }) {
               className={`cf-btn ${kind === o.kind ? 'cf-btn-primary' : ''}`}
               onClick={() => setKind(o.kind)}
             >
-              {o.label}
+              {t(o.label)}
             </button>
           ))}
         </div>
@@ -77,7 +82,7 @@ function FeedbackBox({ analysisId }: { analysisId: string }) {
           className="input"
           rows={3}
           maxLength={1000}
-          placeholder="Cuéntanos por qué (opcional)"
+          placeholder={t('result.feedbackPlaceholder')}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
         />
@@ -86,16 +91,20 @@ function FeedbackBox({ analysisId }: { analysisId: string }) {
           disabled={!kind || send.isPending}
           onClick={() => send.mutate()}
         >
-          Enviar
+          {t('common.send')}
         </button>
-        {send.error && <span className="error cf-small">{send.error.message}</span>}
+        {send.error && <span className="error cf-small">{errorText(send.error)}</span>}
       </div>
     </details>
   );
 }
 
-/** Sin servidor no hay buzón de avisos: se abre un issue de GitHub ya rellenado. */
+/**
+ * Sin servidor no hay buzón de avisos: se abre un issue de GitHub ya rellenado. El texto del
+ * issue va en español, el idioma del repositorio.
+ */
 function IssueLink({ result }: { result: AnalyzeResponse }) {
+  const { t } = useI18n();
   const body = [
     '**Enlace analizado:** ' + result.url,
     '**Puntuación de Confinet:** ' +
@@ -129,7 +138,7 @@ function IssueLink({ result }: { result: AnalyzeResponse }) {
       target="_blank"
       rel="noreferrer"
     >
-      ¿La puntuación no te parece correcta? Avísanos en GitHub
+      {t('result.reportOnGithub')}
     </a>
   );
 }

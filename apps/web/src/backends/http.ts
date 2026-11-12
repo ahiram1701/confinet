@@ -1,10 +1,13 @@
 import type { AnalyzeRequest, AnalyzeResponse, HistoryItem } from '@confinet/core';
+import type { MessageRef } from '@confinet/i18n';
 
 export class ApiError extends Error {
   constructor(
     public status: number,
     public code: string,
     message: string,
+    /** Texto traducible, cuando el error nace en el navegador (versión sin servidor). */
+    public ref?: MessageRef,
   ) {
     super(message);
   }

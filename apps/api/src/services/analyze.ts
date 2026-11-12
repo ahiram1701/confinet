@@ -11,6 +11,7 @@ import {
   type FactCheckMatch,
   type TrustScore,
 } from '@confinet/core';
+import { translate, type MessageKey } from '@confinet/i18n';
 import { analyzeWithLlm, chainFromEnv, type LlmConfig, type LlmResult } from '@confinet/llm';
 import { and, desc, eq, gt } from 'drizzle-orm';
 import type { Db } from '../db';
@@ -56,7 +57,12 @@ export async function runAnalysis(
   const page: ExtractedPage = req.extracted
     ? { ...req.extracted, url: url.toString() }
     : await fetchAndExtract(url.toString());
-  const contentHash = await sha256Hex(`${page.title}\n${page.text.slice(0, 20_000)}`);
+  // El idioma forma parte de la caché: el resumen de la IA se escribe en el de la interfaz.
+  // En español se mantiene el hash de siempre para no invalidar lo ya guardado.
+  const locale = req.locale ?? 'es';
+  const contentHash = await sha256Hex(
+    `${locale === 'es' ? '' : `${locale}\n`}${page.title}\n${page.text.slice(0, 20_000)}`,
+  );
 
   // ── LLM disponible: BYOK (ilimitado) y/o cadena del servidor (con cuota) ──
   const byok = user ? await getUserLlmConfig(db, env, user.id) : null;
@@ -72,14 +78,16 @@ export async function runAnalysis(
   const cached = await db
     .select()
     .from(analysis)
-    .where(and(eq(analysis.urlHash, urlHash), gt(analysis.createdAt, new Date(Date.now() - ttlMs))))
+    .where(
+      and(
+        eq(analysis.urlHash, urlHash),
+        eq(analysis.contentHash, contentHash),
+        gt(analysis.createdAt, new Date(Date.now() - ttlMs)),
+      ),
+    )
     .orderBy(desc(analysis.createdAt))
     .get();
-  if (
-    cached &&
-    cached.contentHash === contentHash &&
-    (cached.aiJson || !wantAi || chain.length === 0)
-  ) {
+  if (cached && (cached.aiJson || !wantAi || chain.length === 0)) {
     await Promise.all([recordUsage(db, subject.key, false), touchHistory(db, user, cached.id)]);
     return rowToResponse(
       cached,
@@ -94,7 +102,13 @@ export async function runAnalysis(
     lookupReputation(db, url.hostname, domain),
     domainAgeDays(db, domain),
     wantAi && chain.length > 0
-      ? llm(chain, { url: page.url, title: page.title, text: page.text, lang: page.lang }).then(
+      ? llm(chain, {
+          url: page.url,
+          title: page.title,
+          text: page.text,
+          lang: page.lang,
+          locale,
+        }).then(
           (r): LlmResult | Error => r,
           (e: unknown): LlmResult | Error => (e instanceof Error ? e : new Error(String(e))),
         )
@@ -144,20 +158,18 @@ export async function runAnalysis(
     !(byok && llmResult.provider === byok.provider && llmResult.model === byok.model);
   await Promise.all([recordUsage(db, subject.key, usedServerAi), touchHistory(db, user, row.id)]);
 
-  const reason = !wantAi
+  const reason: MessageKey | undefined = !wantAi
     ? undefined
     : llmOutcome instanceof Error
-      ? 'El servicio de IA no está disponible ahora mismo.'
+      ? 'aiUnavailable.serviceDown'
       : !llmResult
         ? unavailableReason(serverAiAllowed)
         : undefined;
   return rowToResponse(row, false, reason);
 }
 
-function unavailableReason(serverAiAllowed: boolean) {
-  return serverAiAllowed
-    ? 'No hay ningún proveedor de IA configurado.'
-    : 'Has agotado los análisis con IA de hoy. Inicia sesión o añade tu propia clave para obtener más.';
+function unavailableReason(serverAiAllowed: boolean): MessageKey {
+  return serverAiAllowed ? 'aiUnavailable.noServerProvider' : 'aiUnavailable.quota';
 }
 
 async function touchHistory(db: Db, user: AuthUser | null, analysisId: string) {
@@ -174,7 +186,7 @@ async function touchHistory(db: Db, user: AuthUser | null, analysisId: string) {
 export function rowToResponse(
   row: AnalysisRow,
   cached: boolean,
-  aiUnavailableReason?: string,
+  aiUnavailable?: MessageKey,
 ): AnalyzeResponse {
   return {
     id: row.id,
@@ -187,7 +199,12 @@ export function rowToResponse(
     ai: row.aiJson
       ? { ...JSON.parse(row.aiJson), provider: row.llmProvider ?? '?', model: row.llmModel ?? '?' }
       : null,
-    ...(aiUnavailableReason ? { aiUnavailableReason } : {}),
+    ...(aiUnavailable
+      ? {
+          aiUnavailable: { key: aiUnavailable },
+          aiUnavailableReason: translate('es', aiUnavailable),
+        }
+      : {}),
     factChecks: JSON.parse(row.factChecksJson) as FactCheckMatch[],
   };
 }

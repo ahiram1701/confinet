@@ -3,8 +3,8 @@ import { generateText, Output, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import type { LlmConfig } from './config';
 import {
+  buildInstructions,
   buildPrompt,
-  INSTRUCTIONS,
   jsonOnlySuffix,
   parseJsonLoose,
   type ArticleInput,
@@ -81,12 +81,13 @@ async function runModel(
     ? AbortSignal.any([abortSignal, AbortSignal.timeout(timeoutMs)])
     : AbortSignal.timeout(timeoutMs);
   const prompt = buildPrompt(article);
+  const instructions = buildInstructions(article.locale);
 
   // 1) Salida estructurada nativa (tool use / json_schema según el proveedor).
   try {
     const { output } = await generateText({
       model,
-      instructions: INSTRUCTIONS,
+      instructions,
       prompt,
       output: Output.object({ schema: LlmAnalysisSchema, name: 'analisis_fiabilidad' }),
       temperature: 0,
@@ -97,16 +98,17 @@ async function runModel(
   } catch (error) {
     if (signal.aborted) throw error;
     // 2) Modelos sin salida estructurada: pedimos JSON en el prompt y validamos nosotros.
-    return runJsonFallback(model, prompt, signal);
+    return runJsonFallback(model, prompt, instructions, signal);
   }
 }
 
 async function runJsonFallback(
   model: LanguageModel,
   prompt: string,
+  baseInstructions: string,
   signal: AbortSignal,
 ): Promise<LlmAnalysis> {
-  const instructions = INSTRUCTIONS + jsonOnlySuffix(z.toJSONSchema(LlmAnalysisSchema));
+  const instructions = baseInstructions + jsonOnlySuffix(z.toJSONSchema(LlmAnalysisSchema));
   let lastError = '';
   for (let attempt = 0; attempt < 2; attempt++) {
     const { text } = await generateText({

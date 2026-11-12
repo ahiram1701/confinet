@@ -95,6 +95,16 @@ describe('computeTrustScore', () => {
     ]);
     expect(trust.score).toBeLessThanOrEqual(35);
     expect(trust.caps).toHaveLength(1);
+    expect(trust.caps[0]?.key).toBe('cap.debunked');
+  });
+
+  it('guarda cada explicación como clave + parámetros y también en español', () => {
+    const author = contentSignals(reliablePage).find((s) => s.id === 'content.author');
+    expect(author?.message).toEqual({
+      key: 'signal.content.author.yes',
+      params: { author: reliablePage.author },
+    });
+    expect(author?.explanation).toBe(`El artículo está firmado por "${reliablePage.author}".`);
   });
 
   it('no puntúa si apenas hay señales', () => {
