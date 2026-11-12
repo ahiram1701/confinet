@@ -373,6 +373,25 @@ export const es = {
   'ext.autoHelp':
     'Requiere permiso para leer las páginas que visitas. Solo se envían a Confinet las páginas con aspecto de artículo. Desactivado, Confinet solo actúa cuando pulsas su icono.',
   'ext.privacy': 'Política de privacidad',
+
+  // Verificaciones externas (versión sin servidor)
+  'error.settings.pasteFactCheckKey': 'Pega tu API key de Google.',
+  'factcheck.title': 'Verificaciones externas (opcional)',
+  'factcheck.intro':
+    'Busca las afirmaciones de la noticia (o su titular, si no usas IA) en las verificaciones publicadas por medios como Maldita, Newtral, AFP o PolitiFact, a través de <b>Google Fact Check</b>. Un desmentido limita la puntuación a 35.',
+  'factcheck.steps':
+    'Es gratis. Crea una API key en <link>Google Cloud</link>: activa «Fact Check Tools API» y, en «Credenciales», crea una clave restringida a esa API. Se guarda solo en este navegador.',
+  'factcheck.key': 'API key de Google',
+  'factcheck.active': '✓ Verificaciones activadas en este navegador.',
+  'factcheck.saved': 'Guardada. Se usará en los próximos análisis.',
+  'factcheck.forgotten': 'Key borrada. Las verificaciones quedan desactivadas.',
+  'factcheck.forget': 'Olvidar key',
+  'factcheck.test': 'Probar key',
+  'factcheck.testing': 'Probando…',
+  'factcheck.testOk': '✓ La key funciona.',
+  'factcheck.testRejected':
+    'Google rechazó la key. Revisa que sea correcta y que «Fact Check Tools API» esté activada en tu proyecto.',
+  'factcheck.testError': 'No se pudo contactar con Google. Inténtalo de nuevo.',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof es;

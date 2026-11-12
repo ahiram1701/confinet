@@ -5,6 +5,7 @@ import {
   isHttpUrl,
   normalizeUrl,
   registrableDomain,
+  searchFactChecks,
   sourceSignals,
   type AnalyzeRequest,
   type AnalyzeResponse,
@@ -16,7 +17,7 @@ import { AppError, errorText, translate, type MessageRef } from '@confinet/i18n'
 import { runAi } from './ai';
 import { isPuterSignedIn, puterFetch } from './puter';
 import { lookupReputation } from './reputation';
-import { getAiSettings, isAiConfigured } from './settings';
+import { getAiSettings, getFactCheckKey, isAiConfigured } from './settings';
 import { saveResult } from './store';
 
 /**
@@ -66,7 +67,16 @@ export async function analyzeInBrowser(req: AnalyzeRequest): Promise<AnalyzeResp
     }
   }
 
-  // 4. Puntuación
+  // 4. Verificaciones externas (si el usuario puso su key de Google): las afirmaciones de la IA
+  //    o, sin IA, el titular.
+  const { matches: factChecks } = await searchFactChecks(
+    getFactCheckKey() ?? undefined,
+    analysis?.claims ?? [],
+    page.lang,
+    { fallbackQuery: page.title },
+  );
+
+  // 5. Puntuación
   const trust = computeTrustScore([
     ...sourceSignals({
       url: url.toString(),
@@ -76,7 +86,7 @@ export async function analyzeInBrowser(req: AnalyzeRequest): Promise<AnalyzeResp
       hasContactPage: page.hasContactPage,
     }),
     ...contentSignals(page),
-    ...aiSignals(analysis),
+    ...aiSignals(analysis, factChecks),
   ]);
 
   const result: AnalyzeResponse = {
@@ -96,7 +106,7 @@ export async function analyzeInBrowser(req: AnalyzeRequest): Promise<AnalyzeResp
           aiUnavailableReason: translate('es', aiUnavailable.key, aiUnavailable.params),
         }
       : {}),
-    factChecks: [],
+    factChecks,
   };
   saveResult(result);
   return result;

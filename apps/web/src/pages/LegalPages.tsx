@@ -49,6 +49,11 @@ function PrivacyEs() {
               que elijas (Puter u Ollama Cloud), con tu cuenta o tu API key. Tu key de Ollama se
               guarda únicamente en este navegador.
             </li>
+            <li>
+              Si activas las verificaciones externas, las afirmaciones del artículo (o su titular)
+              se envían a <strong>Google Fact Check Tools</strong> con tu propia API key, que se
+              guarda únicamente en este navegador.
+            </li>
             <li>La antigüedad del dominio se consulta en el servicio público rdap.org.</li>
           </ul>
           <p>Lo siguiente aplica solo a la versión con servidor propio.</p>
@@ -130,6 +135,11 @@ function PrivacyEn() {
               If you turn on AI, the article text is sent <strong>only</strong> to the provider you
               choose (Puter or Ollama Cloud), with your account or your API key. Your Ollama key is
               stored only in this browser.
+            </li>
+            <li>
+              If you turn on external fact-checks, the article's claims (or its headline) are sent
+              to <strong>Google Fact Check Tools</strong> with your own API key, which is stored
+              only in this browser.
             </li>
             <li>The domain age is looked up on the public rdap.org service.</li>
           </ul>

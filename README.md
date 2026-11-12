@@ -122,7 +122,7 @@ docs/         Guía de uso y capturas
 | Descarga de enlaces pegados        | Puter (o la extensión)                         | El servidor                                                    |
 | Cuentas e historial                | Historial local                                | Cuentas OAuth e historial sincronizado                         |
 | IA                                 | Puter u Ollama Cloud, elegida por cada usuario | Cualquier proveedor (configuración + clave propia por usuario) |
-| Verificaciones (Google Fact Check) | —                                              | ✓                                                              |
+| Verificaciones (Google Fact Check) | Con tu propia API key de Google (gratis)       | ✓                                                              |
 | Panel de administración            | —                                              | ✓                                                              |
 | Coste                              | 0 €                                            | 0 € con los planes gratuitos de Cloudflare                     |
 
@@ -220,7 +220,7 @@ Para activar el modo con servidor en Cloudflare, sigue [docs/despliegue-cloudfla
 - [x] Publicación en Edge Add-ons
 - [x] Ampliar la base de reputación con listas abiertas de licencia compatible
 - [ ] Lista de reputación de medios en español, cuando exista una con licencia abierta
-- [ ] Verificaciones externas en el modo sin servidor
+- [x] Verificaciones externas en el modo sin servidor
 - [x] Traducción de la interfaz (inglés)
 - [ ] Guía de uso en inglés
 

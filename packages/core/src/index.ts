@@ -9,3 +9,4 @@ export * from './signals/source';
 export * from './signals/ai';
 export * from './api-types';
 export * from './handoff';
+export * from './factcheck';
