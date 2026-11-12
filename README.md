@@ -218,7 +218,8 @@ Para activar el modo con servidor en Cloudflare, sigue [docs/despliegue-cloudfla
 ## Roadmap
 
 - [x] Publicación en Edge Add-ons
-- [ ] Ampliar la base de reputación con listas abiertas de licencia compatible
+- [x] Ampliar la base de reputación con listas abiertas de licencia compatible
+- [ ] Lista de reputación de medios en español, cuando exista una con licencia abierta
 - [x] Verificaciones externas en el modo sin servidor
 - [x] Traducción de la interfaz (inglés)
 - [ ] Guía de uso en inglés
@@ -231,6 +232,11 @@ Para activar el modo con servidor en Cloudflare, sigue [docs/despliegue-cloudfla
 ## Licencia
 
 [MIT](LICENSE) © 2026 Alberto Hiram Saucedo Guajardo.
+
+Excepción: la lista de reputación de
+[`packages/core/data/reputation-wikipedia.json`](packages/core/data) procede de
+[Wikipedia: Reliable sources/Perennial sources](https://en.wikipedia.org/wiki/Wikipedia:Reliable_sources/Perennial_sources)
+y se distribuye bajo [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 > Las puntuaciones de Confinet son orientativas y automáticas. No sustituyen el criterio propio
 > ni la verificación profesional.
