@@ -174,7 +174,10 @@ Despliega cada pilar para ver sus señales. Cada una tiene un punto de color (�
 
 - **Enlaces a fuentes**: «Enlaza a 3 fuente(s) externa(s)», con la lista de dominios citados.
 - **Titular sensacionalista**: muestra la fórmula detectada (p. ej. «NO VAS A CREER»).
-- **Reputación del medio**: indica de dónde sale la valoración (p. ej. «Semilla Confinet»).
+- **Reputación del medio**: indica de dónde sale la valoración. Puede ser la lista propia de
+  Confinet («Semilla Confinet») o la de fuentes valoradas por los editores de Wikipedia en inglés
+  («Wikipedia (Perennial sources)», con cientos de medios, sobre todo internacionales). Si un medio
+  no está en ninguna, la señal no se mide.
 - **Falacias detectadas** (IA): cita el fragmento exacto donde aparece cada una.
 
 ### Avisos que limitan la nota

@@ -37,7 +37,9 @@ pnpm turbo run lint typecheck test
 - Textos de la interfaz claros y sin tecnicismos, **siempre traducidos** (ver abajo).
 - Toda señal nueva debe tener una **explicación legible** y un test en `packages/core`.
 - La reputación de medios debe basarse en fuentes verificables y con licencia compatible: no se
-  aceptan valoraciones subjetivas sin respaldo.
+  aceptan valoraciones subjetivas sin respaldo. La semilla propia está en
+  `apps/api/migrations/0001_seed_reputation.sql` (tiene prioridad); la lista de Wikipedia se
+  regenera con `node scripts/update-reputation.mjs` (ver `packages/core/data/README.md`).
 - Ningún proveedor ni modelo de IA debe quedar activado por defecto.
 
 ## Textos e idiomas

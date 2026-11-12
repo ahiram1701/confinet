@@ -1,4 +1,5 @@
 import type { DomainReputation, ReputationRating } from '@confinet/core';
+import { lookupOpenReputation } from '@confinet/core/open-reputation';
 // Misma semilla que la base de datos de la API: una sola fuente de verdad.
 import seedSql from '../../../../api/migrations/0001_seed_reputation.sql?raw';
 
@@ -19,7 +20,14 @@ export function parseSeed(sql: string): Map<string, DomainReputation> {
 
 const SEED = parseSeed(seedSql);
 
-/** Prueba el host completo y después el dominio registrable, igual que la API. */
+/**
+ * Prueba el host completo y después el dominio registrable, igual que la API: primero en la
+ * semilla de Confinet y, si no está, en las listas abiertas (Wikipedia).
+ */
 export function lookupReputation(hostname: string, registrable: string): DomainReputation | null {
-  return SEED.get(hostname.replace(/^www\./, '')) ?? SEED.get(registrable) ?? null;
+  return (
+    SEED.get(hostname.replace(/^www\./, '')) ??
+    SEED.get(registrable) ??
+    lookupOpenReputation(hostname, registrable)
+  );
 }

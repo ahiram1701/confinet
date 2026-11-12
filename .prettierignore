@@ -6,3 +6,6 @@ pnpm-lock.yaml
 **/migrations/meta
 .claude
 **/public
+
+# Datos generados por scripts/update-reputation.mjs
+packages/core/data/*.json

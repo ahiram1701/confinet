@@ -1,11 +1,13 @@
 import type { DomainReputation } from '@confinet/core';
+import { lookupOpenReputation } from '@confinet/core/open-reputation';
 import { inArray } from 'drizzle-orm';
 import type { Db } from '../db';
 import { domainReputation } from '../db/schema';
 
 /**
  * Busca la reputación del dominio. Prueba primero el host completo y luego el registrable,
- * para que "blog.ejemplo.com" pueda tener una valoración distinta de "ejemplo.com".
+ * para que "blog.ejemplo.com" pueda tener una valoración distinta de "ejemplo.com". Si la base
+ * de datos (semilla + correcciones del admin) no lo tiene, consulta las listas abiertas.
  */
 export async function lookupReputation(
   db: Db,
@@ -26,5 +28,5 @@ export async function lookupReputation(
         source: row.source,
         ...(row.notes ? { notes: row.notes } : {}),
       }
-    : null;
+    : lookupOpenReputation(hostname, registrable);
 }
