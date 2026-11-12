@@ -17,6 +17,7 @@ fuente, contenido y análisis con IA, **explicados señal a señal**.
 
 [**Probar la app →**](https://ahiram1701.github.io/confinet/) ·
 [Guía de uso](docs/guia-de-uso.md) ·
+[Extensión para Edge](https://microsoftedge.microsoft.com/addons/detail/confinet-%E2%80%94-%C2%BFte-puedes-fia/nklniknidhkjnlibadmhchdbakdikhmf) ·
 [Descargar la extensión](https://github.com/ahiram1701/confinet/releases) ·
 [Informar de un problema](https://github.com/ahiram1701/confinet/issues/new/choose)
 
@@ -32,7 +33,9 @@ fuente, contenido y análisis con IA, **explicados señal a señal**.
 
 1. **Abre la app**: <https://ahiram1701.github.io/confinet/> e instálala en tu móvil u ordenador
    si quieres.
-2. **Instala la extensión** (Chrome, Edge, Brave) desde
+2. **Instala la extensión**: en Edge, desde
+   [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/confinet-%E2%80%94-%C2%BFte-puedes-fia/nklniknidhkjnlibadmhchdbakdikhmf)
+   (se actualiza sola); en Chrome y Brave, desde
    [Releases](https://github.com/ahiram1701/confinet/releases).
    [Instrucciones paso a paso](docs/guia-de-uso.md#3-instalar-la-extensión).
 3. **Analiza**: pulsa el icono de Confinet en cualquier noticia, o pega o comparte un enlace en la
@@ -212,7 +215,7 @@ Para activar el modo con servidor en Cloudflare, sigue [docs/despliegue-cloudfla
 
 ## Roadmap
 
-- [ ] Publicación en Edge Add-ons
+- [x] Publicación en Edge Add-ons
 - [ ] Ampliar la base de reputación con listas abiertas de licencia compatible
 - [ ] Verificaciones externas en el modo sin servidor
 - [ ] Traducción de la interfaz (inglés)
