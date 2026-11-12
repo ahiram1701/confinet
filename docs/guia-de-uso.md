@@ -1,5 +1,7 @@
 # Guía de uso de Confinet
 
+🇬🇧 [Read in English](user-guide.md)
+
 Esta guía explica, paso a paso, cómo usar Confinet para saber cuánto puedes fiarte de lo que lees
 en internet.
 
@@ -38,6 +40,10 @@ Hay dos formas de usarlo, y se complementan:
 | Dónde    | Móvil y escritorio                             | Chrome, Edge, Brave (escritorio)      |
 | Cómo     | Pegas o compartes un enlace                    | Pulsas el icono en la página que lees |
 | Necesita | Sesión de Puter para descargar enlaces pegados | Nada más                              |
+
+**Idioma**: Confinet está en español e inglés. Usa el idioma de tu navegador; puedes cambiarlo en
+**Cuenta → Idioma**, con los enlaces **ES · EN** del pie de la app o en las opciones de la
+extensión. La IA escribe el resumen en ese mismo idioma.
 
 ---
 
@@ -183,7 +189,8 @@ Despliega cada pilar para ver sus señales. Cada una tiene un punto de color (�
 ### Avisos que limitan la nota
 
 Un recuadro rojo ⚠ indica un límite. Por ejemplo, si el medio está señalado como **poco fiable**,
-la nota no puede pasar de 45, por bien escrito que esté el artículo.
+la nota no puede pasar de 45, por bien escrito que esté el artículo; y si un verificador ha
+**desmentido** alguna de sus afirmaciones, no puede pasar de 35.
 
 ---
 
@@ -307,7 +314,7 @@ no ve tus análisis. Más detalles en la página **Privacidad** de la app.
 
 Las webs no pueden leer páginas de otros sitios por seguridad (CORS). Inicia sesión en Puter en **Cuenta**, o usa la extensión.
 
-#### La extensión dice «Esta página no se puede analizar.»
+#### La extensión dice «No se puede analizar esta página.»
 
 Los navegadores no permiten a las extensiones leer páginas internas (`chrome://`, `edge://`), las tiendas de extensiones ni los visores de PDF.
 
@@ -334,6 +341,10 @@ El modelo no devolvió el análisis en el formato esperado, ni siquiera al repet
 #### «La respuesta del modelo se cortó antes de terminar.»
 
 El modelo agotó su límite de respuesta (suele pasar con modelos que «razonan» mucho). Prueba con otro modelo.
+
+#### «Google rechazó la key.»
+
+Comprueba que copiaste bien la key y que **Fact Check Tools API** está activada en el mismo proyecto de Google Cloud. Si restringiste la key, debe permitir esa API.
 
 #### El resultado no tiene «Antigüedad del dominio».
 

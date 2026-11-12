@@ -384,4 +384,8 @@ export const en: Record<MessageKey, Message> = {
   'factcheck.testRejected':
     'Google rejected the key. Check that it is correct and that the "Fact Check Tools API" is enabled in your project.',
   'factcheck.testError': 'Could not reach Google. Try again.',
+
+  // Enlaces a la guía de uso de cada idioma (ruta dentro del repositorio)
+  'guide.installExtension': 'docs/user-guide.md#3-install-the-extension',
+  'guide.updates': 'docs/user-guide.md#updates',
 };

@@ -73,10 +73,7 @@ export function AnalyzePage() {
               </Link>
             ),
             ext: (s) => (
-              <a
-                className="cf-link"
-                href={`${REPO_URL}/blob/main/docs/guia-de-uso.md#3-instalar-la-extensión`}
-              >
+              <a className="cf-link" href={`${REPO_URL}/blob/main/${t('guide.installExtension')}`}>
                 {s}
               </a>
             ),

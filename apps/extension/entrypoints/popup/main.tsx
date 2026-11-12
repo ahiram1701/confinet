@@ -10,8 +10,7 @@ import { extensionPreference } from '../../lib/locale';
 import { getTabState, onTabStateChange, type Message, type TabState } from '../../lib/state';
 import { getAvailableUpdate, type UpdateInfo } from '../../lib/updates';
 
-const UPDATE_GUIDE =
-  'https://github.com/ahiram1701/confinet/blob/main/docs/guia-de-uso.md#actualizaciones';
+const REPO = 'https://github.com/ahiram1701/confinet/blob/main';
 
 function Popup() {
   const { t, rich, locale } = useI18n();
@@ -72,7 +71,12 @@ function Popup() {
             {t('ext.download')}
           </a>{' '}
           ·{' '}
-          <a className="cf-link" href={UPDATE_GUIDE} target="_blank" rel="noreferrer">
+          <a
+            className="cf-link"
+            href={`${REPO}/${t('guide.updates')}`}
+            target="_blank"
+            rel="noreferrer"
+          >
             {t('ext.howToUpdate')}
           </a>
         </div>
