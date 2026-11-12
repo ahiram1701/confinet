@@ -1,3 +1,4 @@
+import { useI18n } from '@confinet/i18n/react';
 import { useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { toUrl, useAnalyze } from './AnalyzePage';
@@ -16,6 +17,7 @@ export function extractSharedUrl(params: URLSearchParams): string | null {
 }
 
 export function SharePage() {
+  const { t, errorText } = useI18n();
   const [params] = useSearchParams();
   const analyze = useAnalyze();
   const url = extractSharedUrl(params);
@@ -31,9 +33,9 @@ export function SharePage() {
   if (!url) {
     return (
       <div className="cf-card cf-stack">
-        <strong>No se encontró ningún enlace en lo que has compartido.</strong>
+        <strong>{t('share.noLink')}</strong>
         <Link to="/" className="cf-link">
-          Pegar un enlace manualmente
+          {t('share.pasteManually')}
         </Link>
       </div>
     );
@@ -41,9 +43,9 @@ export function SharePage() {
 
   return (
     <div className="cf-card cf-stack">
-      <strong>{analyze.isError ? 'No se pudo analizar' : 'Analizando…'}</strong>
+      <strong>{analyze.isError ? t('share.failed') : t('home.analyzing')}</strong>
       <span className="cf-muted cf-small ellipsis">{url}</span>
-      {analyze.error && <span className="error">{analyze.error.message}</span>}
+      {analyze.error && <span className="error">{errorText(analyze.error)}</span>}
     </div>
   );
 }

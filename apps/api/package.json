@@ -16,6 +16,7 @@
   "dependencies": {
     "@confinet/core": "workspace:*",
     "@confinet/extract": "workspace:*",
+    "@confinet/i18n": "workspace:*",
     "@confinet/llm": "workspace:*",
     "better-auth": "^1.7.18",
     "drizzle-orm": "^0.45.4",

@@ -34,11 +34,27 @@ pnpm turbo run lint typecheck test
 ## Convenciones
 
 - TypeScript estricto. Formato con Prettier (`pnpm format`).
-- Textos de la interfaz en español, claros y sin tecnicismos.
+- Textos de la interfaz claros y sin tecnicismos, **siempre traducidos** (ver abajo).
 - Toda señal nueva debe tener una **explicación legible** y un test en `packages/core`.
 - La reputación de medios debe basarse en fuentes verificables y con licencia compatible: no se
   aceptan valoraciones subjetivas sin respaldo.
 - Ningún proveedor ni modelo de IA debe quedar activado por defecto.
+
+## Textos e idiomas
+
+La interfaz está en español e inglés. Ningún texto visible va escrito directamente en el código:
+todos están en [`packages/i18n`](packages/i18n/src).
+
+- **Añadir un texto**: ponlo en `es.ts` (el diccionario de referencia) y en `en.ts`, con la misma
+  clave. Si falta en `en.ts`, `pnpm typecheck` falla; si los `{parámetros}` no coinciden, falla el
+  test de `packages/i18n`.
+- **Usarlo**: en React, `const { t } = useI18n()` y `t('clave', { n })`. Para frases con un
+  enlace o una negrita dentro, `rich('clave', { link: (s) => <a …>{s}</a> })` con
+  `<link>…</link>` en el texto. Si un texto depende de un número, usa `{ one, other }`.
+- **Señales y errores**: se guardan como clave + parámetros (`signal(id, valor, 'signal.…', {…})`,
+  `new AppError('error.…')`), así un análisis guardado se ve en el idioma que elija cada persona.
+- **Añadir un idioma**: crea `xx.ts` con el tipo `Record<MessageKey, Message>`, añádelo a `LOCALES`
+  y `DICTIONARIES` en `index.ts`, y crea `apps/extension/public/_locales/xx/messages.json`.
 
 ## Licencia
 

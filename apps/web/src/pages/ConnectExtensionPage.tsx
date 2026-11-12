@@ -1,3 +1,4 @@
+import { useI18n } from '@confinet/i18n/react';
 import { useMutation } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router';
 import { api } from '../api';
@@ -9,6 +10,7 @@ import { useMe } from '../Layout';
  * Si el navegador no lo permite, mostramos el token para copiarlo a mano.
  */
 export function ConnectExtensionPage() {
+  const { t, errorText } = useI18n();
   const [params] = useSearchParams();
   const extId = params.get('ext');
   const { data: me, isLoading } = useMe();
@@ -21,19 +23,19 @@ export function ConnectExtensionPage() {
     },
   });
 
-  if (isLoading) return <p className="cf-muted">Cargando…</p>;
+  if (isLoading) return <p className="cf-muted">{t('common.loading')}</p>;
 
   if (!me?.user) {
     const next = `/conectar-extension${extId ? `?ext=${encodeURIComponent(extId)}` : ''}`;
     return (
       <div className="cf-card cf-stack">
-        <strong>Primero inicia sesión</strong>
+        <strong>{t('connect.signInFirst')}</strong>
         <Link
           className="cf-btn cf-btn-primary"
           style={{ textAlign: 'center', textDecoration: 'none' }}
           to={`/cuenta?next=${encodeURIComponent(next)}`}
         >
-          Iniciar sesión
+          {t('common.signIn')}
         </Link>
       </div>
     );
@@ -42,18 +44,17 @@ export function ConnectExtensionPage() {
   if (connect.data?.sent) {
     return (
       <div className="cf-card cf-stack">
-        <strong>✓ Extensión conectada</strong>
-        <span className="cf-muted">Ya puedes cerrar esta pestaña.</span>
+        <strong>{t('connect.done')}</strong>
+        <span className="cf-muted">{t('connect.closeTab')}</span>
       </div>
     );
   }
 
   return (
     <div className="cf-card cf-stack">
-      <h1 style={{ margin: 0, fontSize: 22 }}>Conectar la extensión</h1>
+      <h1 style={{ margin: 0, fontSize: 22 }}>{t('connect.title')}</h1>
       <p className="cf-muted" style={{ margin: 0 }}>
-        La extensión usará tu cuenta ({me.user.email}): tus análisis se guardarán en el historial y
-        tendrás tu cuota de IA. Puedes desconectarla cuando quieras desde «Cuenta».
+        {t('connect.intro', { email: me.user.email })}
       </p>
       {!connect.data && (
         <button
@@ -61,15 +62,13 @@ export function ConnectExtensionPage() {
           onClick={() => connect.mutate()}
           disabled={connect.isPending}
         >
-          Conectar
+          {t('connect.connect')}
         </button>
       )}
-      {connect.error && <span className="error">{connect.error.message}</span>}
+      {connect.error && <span className="error">{errorText(connect.error)}</span>}
       {connect.data && !connect.data.sent && (
         <div className="cf-stack">
-          <span>
-            No se pudo enviar automáticamente. Copia este código en las opciones de la extensión:
-          </span>
+          <span>{t('connect.manual')}</span>
           <input
             className="input"
             readOnly

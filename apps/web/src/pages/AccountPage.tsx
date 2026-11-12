@@ -1,8 +1,11 @@
+import { formatDate } from '@confinet/i18n';
+import { useI18n } from '@confinet/i18n/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router';
 import { api, MODE } from '../api';
 import { authClient } from '../auth-client';
+import { LanguageCard } from '../LanguageCard';
 import { useMe } from '../Layout';
 import { StaticAccountPage } from './StaticAccountPage';
 
@@ -11,12 +14,14 @@ export function AccountPage() {
 }
 
 function ServerAccountPage() {
+  const { t } = useI18n();
   const { data: me, isLoading } = useMe();
-  if (isLoading) return <p className="cf-muted">Cargando…</p>;
+  if (isLoading) return <p className="cf-muted">{t('common.loading')}</p>;
   return me?.user ? <SignedIn /> : <SignIn />;
 }
 
 function SignIn() {
+  const { t } = useI18n();
   const [params] = useSearchParams();
   const next = params.get('next') ?? '/cuenta';
   const { data: config } = useQuery({ queryKey: ['config'], queryFn: api.config });
@@ -28,36 +33,35 @@ function SignIn() {
   return (
     <div className="cf-stack">
       <div className="cf-card cf-stack">
-        <h1 style={{ margin: 0, fontSize: 22 }}>Inicia sesión</h1>
+        <h1 style={{ margin: 0, fontSize: 22 }}>{t('account.signInTitle')}</h1>
         <p className="cf-muted" style={{ margin: 0 }}>
-          Con una cuenta tienes más análisis con IA al día, historial sincronizado con la extensión
-          y puedes usar tu propia clave de IA.
+          {t('account.signInIntro')}
         </p>
         {config?.oauth.google && (
           <button className="cf-btn" onClick={() => social('google')}>
-            Continuar con Google
+            {t('account.continueGoogle')}
           </button>
         )}
         {config?.oauth.github && (
           <button className="cf-btn" onClick={() => social('github')}>
-            Continuar con GitHub
+            {t('account.continueGithub')}
           </button>
         )}
         {config && !config.oauth.google && !config.oauth.github && !config.devLogin && (
-          <p className="cf-muted cf-small">
-            El inicio de sesión no está configurado en este servidor.
-          </p>
+          <p className="cf-muted cf-small">{t('account.noLogin')}</p>
         )}
       </div>
       {config?.devLogin && (
         <DevLogin onDone={() => queryClient.invalidateQueries({ queryKey: ['me'] })} />
       )}
+      <LanguageCard />
     </div>
   );
 }
 
 /** Solo en local/CI (ENABLE_DEV_LOGIN): email + contraseña sin verificación. */
 function DevLogin({ onDone }: { onDone: () => void }) {
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -79,8 +83,8 @@ function DevLogin({ onDone }: { onDone: () => void }) {
 
   return (
     <form className="cf-card cf-stack" onSubmit={submit} data-testid="dev-login">
-      <strong>Acceso de desarrollo</strong>
-      <span className="cf-muted cf-small">Solo visible con ENABLE_DEV_LOGIN=true.</span>
+      <strong>{t('account.devTitle')}</strong>
+      <span className="cf-muted cf-small">{t('account.devHelp')}</span>
       <input
         className="input"
         type="email"
@@ -92,7 +96,7 @@ function DevLogin({ onDone }: { onDone: () => void }) {
       <input
         className="input"
         type="password"
-        placeholder="contraseña (mín. 8)"
+        placeholder={t('account.devPassword')}
         minLength={8}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
@@ -100,13 +104,14 @@ function DevLogin({ onDone }: { onDone: () => void }) {
       />
       {error && <span className="error cf-small">{error}</span>}
       <button className="cf-btn cf-btn-primary" type="submit">
-        Entrar / registrarse
+        {t('account.devSubmit')}
       </button>
     </form>
   );
 }
 
 function SignedIn() {
+  const { t } = useI18n();
   const { data: me } = useMe();
   const queryClient = useQueryClient();
   const signOut = async () => {
@@ -124,21 +129,27 @@ function SignedIn() {
             <div className="cf-muted cf-small">{me.user.email}</div>
           </div>
           <button className="cf-btn" onClick={signOut}>
-            Cerrar sesión
+            {t('common.signOut')}
           </button>
         </div>
         <span className="cf-muted cf-small">
-          Uso de hoy: {me.usage.analyses}/{me.limits.analyses} análisis · {me.usage.ai}/
-          {me.limits.ai} con IA del servidor
+          {t('account.usageToday', {
+            analyses: me.usage.analyses,
+            maxAnalyses: me.limits.analyses,
+            ai: me.usage.ai,
+            maxAi: me.limits.ai,
+          })}
         </span>
       </div>
       <ByokForm />
       <ExtensionTokens />
+      <LanguageCard />
     </div>
   );
 }
 
 function ByokForm() {
+  const { t, rich, errorText } = useI18n();
   const { data: me } = useMe();
   const queryClient = useQueryClient();
   const { data: providers } = useQuery({ queryKey: ['providers'], queryFn: api.providers });
@@ -178,20 +189,25 @@ function ByokForm() {
         save.mutate();
       }}
     >
-      <h2 className="cf-h2">Tu propio modelo de IA (opcional)</h2>
+      <h2 className="cf-h2">{t('account.byokTitle')}</h2>
       <p className="cf-muted cf-small" style={{ margin: 0 }}>
-        Usa tu clave de cualquier proveedor (Anthropic, OpenAI, Gemini, Mistral, Groq, OpenRouter…)
-        o un servidor compatible con OpenAI. Tus análisis con IA serán ilimitados y la clave se
-        guarda cifrada; nunca se vuelve a mostrar.
+        {t('account.byokIntro')}
       </p>
       {current && (
         <div className="cf-note cf-small">
-          Configurado: <strong>{current.provider}</strong> / {current.model}
-          {current.hasKey ? ' · clave guardada' : ''}
+          {rich(
+            'account.byokCurrent',
+            { b: (s) => <strong>{s}</strong> },
+            {
+              provider: current.provider,
+              model: current.model,
+              key: current.hasKey ? t('account.byokKeySaved') : '',
+            },
+          )}
         </div>
       )}
       <label className="field">
-        Proveedor
+        {t('account.provider')}
         <select
           className="input"
           value={provider}
@@ -199,7 +215,7 @@ function ByokForm() {
           required
         >
           <option value="" disabled>
-            Elige un proveedor…
+            {t('account.pickProvider')}
           </option>
           {providers?.map((p) => (
             <option key={p.id} value={p.id}>
@@ -209,20 +225,17 @@ function ByokForm() {
         </select>
       </label>
       <label className="field">
-        Modelo
+        {t('account.model')}
         <input
           className="input"
-          placeholder="Nombre exacto del modelo"
+          placeholder={t('account.modelPlaceholder')}
           required
           value={model}
           onChange={(e) => setModel(e.target.value)}
         />
       </label>
       <label className="field">
-        API key{' '}
-        {current?.hasKey && (
-          <span className="cf-muted">(déjala vacía para conservar la actual)</span>
-        )}
+        API key {current?.hasKey && <span className="cf-muted">{t('account.keepKey')}</span>}
         <input
           className="input"
           type="password"
@@ -233,7 +246,7 @@ function ByokForm() {
       </label>
       {needsBaseUrl && (
         <label className="field">
-          URL base (debe ser accesible públicamente)
+          {t('account.baseUrl')}
           <input
             className="input"
             type="url"
@@ -243,15 +256,15 @@ function ByokForm() {
           />
         </label>
       )}
-      {save.error && <span className="error cf-small">{save.error.message}</span>}
-      {save.isSuccess && <span className="cf-small">Guardado.</span>}
+      {save.error && <span className="error cf-small">{errorText(save.error)}</span>}
+      {save.isSuccess && <span className="cf-small">{t('account.saved')}</span>}
       <div className="cf-row">
         <button className="cf-btn cf-btn-primary" type="submit" disabled={save.isPending}>
-          Guardar
+          {t('common.save')}
         </button>
         {current && (
           <button className="cf-btn" type="button" onClick={() => remove.mutate()}>
-            Quitar
+            {t('account.remove')}
           </button>
         )}
       </div>
@@ -260,6 +273,7 @@ function ByokForm() {
 }
 
 function ExtensionTokens() {
+  const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const { data: tokens } = useQuery({ queryKey: ['tokens'], queryFn: api.extensionTokens });
   const revoke = useMutation({
@@ -269,25 +283,25 @@ function ExtensionTokens() {
 
   return (
     <div className="cf-card">
-      <h2 className="cf-h2">Extensiones conectadas</h2>
+      <h2 className="cf-h2">{t('account.extensionsTitle')}</h2>
       {tokens?.length === 0 && (
         <p className="cf-muted cf-small" style={{ margin: 0 }}>
-          Ninguna. Abre las opciones de la extensión y pulsa «Conectar con mi cuenta».
+          {t('account.extensionsNone')}
         </p>
       )}
-      {tokens?.map((t) => (
-        <div className="list-item" key={t.id}>
+      {tokens?.map((token) => (
+        <div className="list-item" key={token.id}>
           <div style={{ flex: 1 }}>
-            <strong>{t.label}</strong>
+            <strong>{token.label}</strong>
             <div className="cf-muted cf-small">
-              Conectada {new Date(t.createdAt).toLocaleDateString('es')}
-              {t.lastUsedAt
-                ? ` · último uso ${new Date(t.lastUsedAt).toLocaleDateString('es')}`
+              {t('account.extensionConnected', { date: formatDate(locale, token.createdAt) })}
+              {token.lastUsedAt
+                ? t('account.extensionLastUsed', { date: formatDate(locale, token.lastUsedAt) })
                 : ''}
             </div>
           </div>
-          <button className="cf-btn" onClick={() => revoke.mutate(t.id)}>
-            Desconectar
+          <button className="cf-btn" onClick={() => revoke.mutate(token.id)}>
+            {t('account.disconnect')}
           </button>
         </div>
       ))}

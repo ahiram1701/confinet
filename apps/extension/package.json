@@ -15,6 +15,7 @@
   "dependencies": {
     "@confinet/core": "workspace:*",
     "@confinet/extract": "workspace:*",
+    "@confinet/i18n": "workspace:*",
     "@confinet/ui": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"

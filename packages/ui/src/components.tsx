@@ -1,13 +1,12 @@
 import {
-  LEVEL_LABELS,
-  PILLAR_LABELS,
   PILLAR_WEIGHTS,
-  SIGNAL_CATALOG,
   type AnalyzeResponse,
   type Pillar,
   type Signal,
   type TrustLevel,
 } from '@confinet/core';
+import { formatDate } from '@confinet/i18n';
+import { useI18n } from '@confinet/i18n/react';
 import type { ReactNode } from 'react';
 
 export const LEVEL_COLORS: Record<TrustLevel, string> = {
@@ -33,6 +32,7 @@ export function ScoreGauge({
   level: TrustLevel;
   size?: number;
 }) {
+  const { t } = useI18n();
   const stroke = Math.max(6, size / 11);
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
@@ -42,7 +42,7 @@ export function ScoreGauge({
       className="cf-gauge"
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`${LEVEL_LABELS[level]}: ${score ?? 'sin datos'}`}
+      aria-label={`${t(`level.${level}`)}: ${score ?? t('analysis.noData')}`}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle
@@ -73,14 +73,16 @@ export function ScoreGauge({
 }
 
 export function LevelBadge({ level }: { level: TrustLevel }) {
+  const { t } = useI18n();
   return (
     <span className="cf-level" data-level={level}>
-      {LEVEL_LABELS[level]}
+      {t(`level.${level}`)}
     </span>
   );
 }
 
 export function PillarBars({ pillars }: { pillars: AnalyzeResponse['trust']['pillars'] }) {
+  const { t } = useI18n();
   return (
     <div className="cf-stack" style={{ gap: 10 }}>
       {(Object.keys(PILLAR_WEIGHTS) as Pillar[]).map((p) => {
@@ -89,10 +91,10 @@ export function PillarBars({ pillars }: { pillars: AnalyzeResponse['trust']['pil
           <div key={p}>
             <div className="cf-row" style={{ justifyContent: 'space-between', marginBottom: 4 }}>
               <span>
-                {PILLAR_LABELS[p]}{' '}
+                {t(`pillar.${p}`)}{' '}
                 <span className="cf-muted cf-small">({Math.round(PILLAR_WEIGHTS[p] * 100)}%)</span>
               </span>
-              <strong style={{ color: colorFor(score) }}>{score ?? 'sin datos'}</strong>
+              <strong style={{ color: colorFor(score) }}>{score ?? t('analysis.noData')}</strong>
             </div>
             <div className="cf-bar">
               <span style={{ width: `${score ?? 0}%`, background: colorFor(score) }} />
@@ -105,16 +107,17 @@ export function PillarBars({ pillars }: { pillars: AnalyzeResponse['trust']['pil
 }
 
 export function SignalList({ signals }: { signals: Signal[] }) {
-  if (signals.length === 0)
-    return <p className="cf-muted cf-small">No se pudo medir ninguna señal.</p>;
+  const { t } = useI18n();
+  if (signals.length === 0) return <p className="cf-muted cf-small">{t('analysis.noSignals')}</p>;
   return (
     <div>
       {signals.map((s) => (
         <div className="cf-signal" key={s.id}>
           <span className="cf-dot" style={{ background: colorFor(s.value, 1) }} aria-hidden />
           <div>
-            <strong>{SIGNAL_CATALOG[s.id].label}</strong>
-            <div className="cf-muted">{s.explanation}</div>
+            <strong>{t(`signal.${s.id}`)}</strong>
+            {/* Los análisis guardados antes de la traducción solo tienen el texto en español. */}
+            <div className="cf-muted">{s.message ? t(s.message) : s.explanation}</div>
             {s.evidence && s.evidence.length > 0 && (
               <ul className="cf-evidence">
                 {s.evidence.slice(0, 5).map((e) => (
@@ -139,6 +142,7 @@ export function AnalysisView({
   compact?: boolean;
   actions?: ReactNode;
 }) {
+  const { t, locale } = useI18n();
   const { trust, ai, factChecks } = result;
   return (
     <div className="cf-root cf-stack">
@@ -148,29 +152,26 @@ export function AnalysisView({
           <LevelBadge level={trust.level} />
           <strong style={{ overflowWrap: 'anywhere' }}>{result.title || result.url}</strong>
           <span className="cf-muted cf-small">
-            {result.domain} · certeza {Math.round(trust.certainty * 100)}% ·{' '}
-            {new Date(result.analyzedAt).toLocaleString('es', {
-              dateStyle: 'short',
-              timeStyle: 'short',
-            })}
+            {result.domain} · {t('analysis.certainty', { pct: Math.round(trust.certainty * 100) })}{' '}
+            · {formatDate(locale, result.analyzedAt, { dateStyle: 'short', timeStyle: 'short' })}
           </span>
         </div>
       </div>
 
       {trust.caps.map((cap) => (
         <div className="cf-alert" key={cap.reason}>
-          ⚠ {cap.reason}
+          ⚠ {cap.key ? t(cap.key) : cap.reason}
         </div>
       ))}
 
       <div className="cf-card">
-        <h2 className="cf-h2">Desglose</h2>
+        <h2 className="cf-h2">{t('analysis.breakdown')}</h2>
         <PillarBars pillars={trust.pillars} />
       </div>
 
       {ai ? (
         <div className="cf-card">
-          <h2 className="cf-h2">Análisis IA</h2>
+          <h2 className="cf-h2">{t('analysis.ai')}</h2>
           <p style={{ margin: 0 }}>{ai.summary}</p>
           <p className="cf-muted cf-small" style={{ marginBottom: 0 }}>
             {ai.reasoning} —{' '}
@@ -179,13 +180,15 @@ export function AnalysisView({
             </em>
           </p>
         </div>
-      ) : result.aiUnavailableReason ? (
-        <div className="cf-note cf-small">{result.aiUnavailableReason}</div>
+      ) : result.aiUnavailable || result.aiUnavailableReason ? (
+        <div className="cf-note cf-small">
+          {result.aiUnavailable ? t(result.aiUnavailable) : result.aiUnavailableReason}
+        </div>
       ) : null}
 
       {factChecks.length > 0 && (
         <div className="cf-card">
-          <h2 className="cf-h2">Verificaciones relacionadas</h2>
+          <h2 className="cf-h2">{t('analysis.factChecks')}</h2>
           {factChecks.map((f) => (
             <div className="cf-signal" key={f.url}>
               <span
@@ -210,7 +213,7 @@ export function AnalysisView({
                   target="_blank"
                   rel="noreferrer noopener"
                 >
-                  Ver verificación
+                  {t('analysis.viewFactCheck')}
                 </a>
               </div>
             </div>
@@ -221,8 +224,10 @@ export function AnalysisView({
       {(Object.keys(PILLAR_WEIGHTS) as Pillar[]).map((p) => (
         <details className="cf-card cf-details" key={p} open={!compact && p === 'content'}>
           <summary>
-            <strong>{PILLAR_LABELS[p]}</strong>{' '}
-            <span className="cf-muted cf-small">{trust.pillars[p].signals.length} señales</span>
+            <strong>{t(`pillar.${p}`)}</strong>{' '}
+            <span className="cf-muted cf-small">
+              {t('analysis.signalCount', { n: trust.pillars[p].signals.length })}
+            </span>
           </summary>
           <SignalList signals={trust.pillars[p].signals} />
         </details>
@@ -231,8 +236,7 @@ export function AnalysisView({
       {actions}
 
       <p className="cf-muted cf-small" style={{ margin: 0 }}>
-        La puntuación es orientativa y se basa en señales automáticas. No sustituye tu propio
-        criterio: contrasta la información con otras fuentes.
+        {t('analysis.disclaimer')}
       </p>
     </div>
   );

@@ -2,11 +2,11 @@ import type { LlmAnalysis } from '../llm-schema';
 import { signal } from '../signal';
 import type { FactCheckMatch, FactCheckVerdict, Signal } from '../types';
 
-const TONE: Record<LlmAnalysis['tone'], [number, string]> = {
-  neutral: [1, 'Tono neutral e informativo.'],
-  emotional: [0.6, 'Tono emocional.'],
-  sensationalist: [0.25, 'Tono sensacionalista.'],
-  propagandistic: [0, 'Tono propagandístico.'],
+const TONE: Record<LlmAnalysis['tone'], number> = {
+  neutral: 1,
+  emotional: 0.6,
+  sensationalist: 0.25,
+  propagandistic: 0,
 };
 
 export function aiSignals(
@@ -17,18 +17,20 @@ export function aiSignals(
 
   if (analysis) {
     signals.push(
-      signal('ai.assessment', analysis.assessment / 100, analysis.reasoning || analysis.summary),
+      signal('ai.assessment', analysis.assessment / 100, 'signal.ai.assessment.text', {
+        text: analysis.reasoning || analysis.summary,
+      }),
     );
 
-    const [toneValue, toneText] = TONE[analysis.tone];
-    signals.push(signal('ai.tone', toneValue, toneText));
+    signals.push(signal('ai.tone', TONE[analysis.tone], `signal.ai.tone.${analysis.tone}`));
 
     const n = analysis.fallacies.length;
     signals.push(
       signal(
         'ai.fallacies',
         1 - n * 0.25,
-        n === 0 ? 'No se detectan falacias.' : `Se detectan ${n} posible(s) falacia(s).`,
+        n === 0 ? 'signal.ai.fallacies.none' : 'signal.ai.fallacies.some',
+        { n },
         analysis.fallacies.map((f) => `${f.type}: "${f.quote}"`),
       ),
     );
@@ -40,8 +42,9 @@ export function aiSignals(
         signal(
           'ai.claimsSourced',
           sourced / verifiable.length,
-          `${sourced} de ${verifiable.length} afirmaciones verificables citan una fuente.`,
-          verifiable.filter((c) => !c.sourced).map((c) => `Sin fuente: ${c.text}`),
+          'signal.ai.claimsSourced.ratio',
+          { sourced, n: verifiable.length },
+          verifiable.filter((c) => !c.sourced).map((c) => c.text),
         ),
       );
     }
@@ -53,9 +56,8 @@ export function aiSignals(
       signal(
         'ai.factcheck',
         debunked.length === 0 ? 1 : 0,
-        debunked.length === 0
-          ? `${factChecks.length} verificación(es) externa(s) sin desmentidos.`
-          : `${debunked.length} afirmación(es) han sido desmentidas por verificadores.`,
+        debunked.length === 0 ? 'signal.ai.factcheck.clean' : 'signal.ai.factcheck.debunked',
+        { n: debunked.length === 0 ? factChecks.length : debunked.length },
         factChecks.map((f) => `${f.publisher}: "${f.rating}" — ${f.claim}`),
       ),
     );

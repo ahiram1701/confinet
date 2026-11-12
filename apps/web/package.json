@@ -17,6 +17,7 @@
   "dependencies": {
     "@confinet/core": "workspace:*",
     "@confinet/extract": "workspace:*",
+    "@confinet/i18n": "workspace:*",
     "@confinet/llm": "workspace:*",
     "@confinet/ui": "workspace:*",
     "@heyputer/puter.js": "^2.6.5",

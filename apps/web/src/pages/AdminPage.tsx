@@ -1,24 +1,28 @@
+import { hasKey } from '@confinet/i18n';
+import { useI18n } from '@confinet/i18n/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import { api, type ReputationRow } from '../api';
 import { useMe } from '../Layout';
 
-const KIND_LABELS: Record<string, string> = {
-  too_high: 'Debería ser más baja',
-  too_low: 'Debería ser más alta',
-  wrong_signal: 'Señal incorrecta',
-  other: 'Otro',
+/** Tipo de aviso → su texto en el formulario de «Resultado» (result.feedback<Tipo>). */
+const KIND_KEYS: Record<string, string> = {
+  too_high: 'result.feedbackTooHigh',
+  too_low: 'result.feedbackTooLow',
+  wrong_signal: 'result.feedbackWrongSignal',
+  other: 'result.feedbackOther',
 };
 
 const RATINGS: ReputationRow['rating'][] = ['reliable', 'mixed', 'unreliable', 'satire', 'unknown'];
 
 export function AdminPage() {
+  const { t } = useI18n();
   const { data: me } = useMe();
-  if (!me?.user?.isAdmin) return <p className="cf-muted">Solo para administradores.</p>;
+  if (!me?.user?.isAdmin) return <p className="cf-muted">{t('admin.onlyAdmins')}</p>;
   return (
     <div className="cf-stack">
-      <h1 style={{ margin: 0, fontSize: 22 }}>Administración</h1>
+      <h1 style={{ margin: 0, fontSize: 22 }}>{t('admin.title')}</h1>
       <FeedbackQueue />
       <ReputationEditor />
     </div>
@@ -26,6 +30,11 @@ export function AdminPage() {
 }
 
 function FeedbackQueue() {
+  const { t } = useI18n();
+  const kindLabel = (kind: string) => {
+    const key = KIND_KEYS[kind];
+    return key && hasKey(key) ? t(key) : kind;
+  };
   const [status, setStatus] = useState<'open' | 'resolved'>('open');
   const queryClient = useQueryClient();
   const { data } = useQuery({
@@ -42,7 +51,7 @@ function FeedbackQueue() {
     <div className="cf-card">
       <div className="cf-row" style={{ justifyContent: 'space-between' }}>
         <h2 className="cf-h2" style={{ margin: 0 }}>
-          Avisos de usuarios
+          {t('admin.feedbackTitle')}
         </h2>
         <select
           className="input"
@@ -50,11 +59,11 @@ function FeedbackQueue() {
           value={status}
           onChange={(e) => setStatus(e.target.value as 'open' | 'resolved')}
         >
-          <option value="open">Abiertos</option>
-          <option value="resolved">Resueltos</option>
+          <option value="open">{t('admin.open')}</option>
+          <option value="resolved">{t('admin.resolved')}</option>
         </select>
       </div>
-      {data?.length === 0 && <p className="cf-muted cf-small">No hay avisos.</p>}
+      {data?.length === 0 && <p className="cf-muted cf-small">{t('admin.noFeedback')}</p>}
       {data?.map((f) => (
         <div className="list-item" key={f.id}>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -66,13 +75,13 @@ function FeedbackQueue() {
               {f.title || f.url}
             </Link>
             <div className="cf-small">
-              <strong>{KIND_LABELS[f.kind] ?? f.kind}</strong> · puntuación {f.score ?? '–'} ·{' '}
+              <strong>{kindLabel(f.kind)}</strong> · {t('admin.score', { score: f.score ?? '–' })} ·{' '}
               {f.domain}
             </div>
             {f.comment && <div className="cf-muted cf-small">“{f.comment}”</div>}
           </div>
           <button className="cf-btn" onClick={() => toggle.mutate(f.id)}>
-            {status === 'open' ? 'Resolver' : 'Reabrir'}
+            {status === 'open' ? t('admin.resolve') : t('admin.reopen')}
           </button>
         </div>
       ))}
@@ -81,12 +90,13 @@ function FeedbackQueue() {
 }
 
 function ReputationEditor() {
+  const { t, errorText } = useI18n();
   const queryClient = useQueryClient();
   const { data } = useQuery({ queryKey: ['admin-reputation'], queryFn: api.admin.reputation });
   const [form, setForm] = useState({
     domain: '',
     rating: 'mixed',
-    source: 'Revisión manual',
+    source: t('admin.defaultSource'),
     notes: '',
   });
   const [filter, setFilter] = useState('');
@@ -114,14 +124,14 @@ function ReputationEditor() {
   return (
     <div className="cf-card cf-stack">
       <h2 className="cf-h2" style={{ margin: 0 }}>
-        Reputación de dominios
+        {t('admin.reputationTitle')}
       </h2>
       <form className="cf-stack" onSubmit={submit}>
         <div className="cf-row" style={{ flexWrap: 'wrap' }}>
           <input
             className="input"
             style={{ flex: 2, minWidth: 160 }}
-            placeholder="dominio.com"
+            placeholder={t('admin.domainPlaceholder')}
             value={form.domain}
             onChange={(e) => setForm({ ...form, domain: e.target.value })}
             required
@@ -139,25 +149,25 @@ function ReputationEditor() {
         </div>
         <input
           className="input"
-          placeholder="Fuente de la valoración"
+          placeholder={t('admin.sourcePlaceholder')}
           value={form.source}
           onChange={(e) => setForm({ ...form, source: e.target.value })}
           required
         />
         <input
           className="input"
-          placeholder="Notas (opcional)"
+          placeholder={t('admin.notesPlaceholder')}
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
         />
-        {save.error && <span className="error cf-small">{save.error.message}</span>}
+        {save.error && <span className="error cf-small">{errorText(save.error)}</span>}
         <button className="cf-btn cf-btn-primary" type="submit" disabled={save.isPending}>
-          Guardar
+          {t('common.save')}
         </button>
       </form>
       <input
         className="input"
-        placeholder="Filtrar…"
+        placeholder={t('admin.filter')}
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
       />
@@ -184,12 +194,14 @@ function ReputationEditor() {
                   })
                 }
               >
-                Editar
+                {t('admin.edit')}
               </button>
               <button
                 className="cf-btn"
-                aria-label="Eliminar"
-                onClick={() => confirm(`¿Eliminar ${r.domain}?`) && remove.mutate(r.domain)}
+                aria-label={t('common.delete')}
+                onClick={() =>
+                  confirm(t('admin.deleteConfirm', { domain: r.domain })) && remove.mutate(r.domain)
+                }
               >
                 ✕
               </button>

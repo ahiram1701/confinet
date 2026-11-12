@@ -1,0 +1,7 @@
+{
+  "extName": { "message": "Confinet — ¿Te puedes fiar?" },
+  "extDescription": {
+    "message": "Mide la confianza de la información que lees: fuente, contenido y análisis con IA."
+  },
+  "actionTitle": { "message": "Analizar con Confinet" }
+}

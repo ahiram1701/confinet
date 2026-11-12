@@ -52,6 +52,7 @@ resultado, la privacidad y la solución de problemas.
 - 🎯 **Grado de certeza**: indica cuánto se pudo medir; sin datos suficientes, no hay nota.
 - 🧩 **Extensión de navegador** (Manifest V3) con estimación instantánea y permisos mínimos.
 - 📱 **App instalable (PWA)** con «Compartir → Confinet» en Android.
+- 🌐 **En español e inglés**: elige el idioma o deja el del navegador; la IA escribe en el mismo.
 - 🤖 **IA opcional y a tu elección**: ningún proveedor ni modelo por defecto. Puter (Claude, GPT,
   Gemini…), Ollama Cloud o, en la versión con servidor, cualquier proveedor (Anthropic, OpenAI,
   Gemini, Mistral, Groq, OpenRouter, Workers AI, Ollama, endpoints compatibles con OpenAI).
@@ -103,6 +104,7 @@ packages/
   core/       Motor de puntuación puro: señales, pesos, agregación, tipos y traspaso extensión→PWA
   extract/    Extracción del artículo: Readability (navegador) y HTMLRewriter (Workers)
   llm/        Capa de IA agnóstica de proveedor (AI SDK + esquema Zod común)
+  i18n/       Textos de la interfaz en español e inglés (diccionarios tipados)
   ui/         Componentes React compartidos (medidor, desglose, señales)
 apps/
   web/        PWA: backend «estático» (en el navegador) o «api» (Cloudflare)
@@ -218,7 +220,8 @@ Para activar el modo con servidor en Cloudflare, sigue [docs/despliegue-cloudfla
 - [x] Publicación en Edge Add-ons
 - [ ] Ampliar la base de reputación con listas abiertas de licencia compatible
 - [ ] Verificaciones externas en el modo sin servidor
-- [ ] Traducción de la interfaz (inglés)
+- [x] Traducción de la interfaz (inglés)
+- [ ] Guía de uso en inglés
 
 ## Contribuir
 

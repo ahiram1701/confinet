@@ -7,8 +7,10 @@ import {
   type ExtractedPage,
   type TrustLevel,
 } from '@confinet/core';
+import { AppError, errorText, translate, type Locale, type MessageKey } from '@confinet/i18n';
 import { browser } from 'wxt/browser';
 import { API_URL, BACKEND, getSettings } from './config';
+import { getLocale } from './locale';
 import { getTabState, setTabState } from './state';
 
 const BADGE_COLORS: Record<TrustLevel | 'pending', string> = {
@@ -34,7 +36,7 @@ async function extract(tabId: number): Promise<ExtractedPage> {
     files: ['/extractor.js'],
   });
   const page = injection?.result as ExtractedPage | undefined;
-  if (!page) throw new Error('No se pudo leer el contenido de la página.');
+  if (!page) throw new AppError('ext.readFailed');
   return page;
 }
 
@@ -69,6 +71,8 @@ export async function analyzeTab(
     return;
 
   await setTabState(tabId, { status: 'extracting', url });
+  // Los errores se guardan ya escritos en el idioma actual; la IA también responde en él.
+  const locale = await getLocale();
   let page: ExtractedPage;
   try {
     page = await extract(tabId);
@@ -76,7 +80,7 @@ export async function analyzeTab(
     await setTabState(tabId, {
       status: 'error',
       url,
-      error: messageOf(error, 'No se puede analizar esta página.'),
+      error: messageOf(locale, error, 'ext.cannotAnalyze'),
     });
     await browser.action.setBadgeText({ tabId, text: '' });
     return;
@@ -98,14 +102,14 @@ export async function analyzeTab(
   await setBadge(tabId, quick.score, 'pending', true);
 
   try {
-    const result = await requestAnalysis(url, page, opts.skipAi);
+    const result = await requestAnalysis(url, page, locale, opts.skipAi);
     await setTabState(tabId, { status: 'done', url, result });
     await setBadge(tabId, result.trust.score, result.trust.level);
   } catch (error) {
     await setTabState(tabId, {
       status: 'error',
       url,
-      error: messageOf(error, 'Error de conexión con Confinet.'),
+      error: messageOf(locale, error, 'ext.connectionError'),
       quick,
       title: page.title,
     });
@@ -116,6 +120,7 @@ export async function analyzeTab(
 async function requestAnalysis(
   url: string,
   page: ExtractedPage,
+  locale: Locale,
   skipAi?: boolean,
 ): Promise<AnalyzeResponse> {
   const { token } = await getSettings();
@@ -130,10 +135,13 @@ async function requestAnalysis(
       url,
       extracted: { ...page, text: page.text.slice(0, 100_000) },
       skipAi,
+      locale,
     }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? `Error ${res.status}`);
+  if (!res.ok) {
+    throw Object.assign(new Error(data.error ?? `Error ${res.status}`), { code: data.code });
+  }
   return data as AnalyzeResponse;
 }
 
@@ -145,8 +153,12 @@ function sameUrl(a: string, b: string) {
   }
 }
 
-function messageOf(error: unknown, fallback: string) {
-  return error instanceof Error && error.message ? error.message : fallback;
+/** Texto del error en el idioma actual o, si no trae mensaje, el texto genérico `fallback`. */
+function messageOf(locale: Locale, error: unknown, fallback: MessageKey) {
+  return (
+    (error instanceof Error && error.message && errorText(locale, error)) ||
+    translate(locale, fallback)
+  );
 }
 
 /** Heurística barata para el modo automático: rutas con pinta de artículo. */

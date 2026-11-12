@@ -1,3 +1,4 @@
+import { translate, type MessageKey } from '@confinet/i18n';
 import { PILLAR_WEIGHTS, SIGNAL_CATALOG } from './catalog';
 import type { Pillar, PillarResult, Signal, TrustLevel, TrustScore } from './types';
 
@@ -35,10 +36,9 @@ export function computeTrustScore(signals: Signal[]): TrustScore {
 
   const caps: TrustScore['caps'] = [];
   const debunked = signals.find((s) => s.id === 'ai.factcheck' && s.value === 0);
-  if (debunked)
-    caps.push({ reason: 'Contiene afirmaciones desmentidas por verificadores.', max: 35 });
+  if (debunked) caps.push(cap('cap.debunked', 35));
   const unreliable = signals.find((s) => s.id === 'source.reputation' && s.value === 0);
-  if (unreliable) caps.push({ reason: 'El medio está señalado como poco fiable.', max: 45 });
+  if (unreliable) caps.push(cap('cap.unreliable', 45));
 
   if (score != null) {
     for (const cap of caps) score = Math.min(score, cap.max);
@@ -49,6 +49,10 @@ export function computeTrustScore(signals: Signal[]): TrustScore {
   if (certainty < MIN_CERTAINTY) score = null;
 
   return { score, level: levelFor(score), certainty, pillars, caps };
+}
+
+function cap(key: MessageKey, max: number): TrustScore['caps'][number] {
+  return { reason: translate('es', key), key, max };
 }
 
 function pillarResult(pillar: Pillar, all: Signal[]): PillarResult {
@@ -65,10 +69,3 @@ export function levelFor(score: number | null): TrustLevel {
   if (score >= 45) return 'medium';
   return 'low';
 }
-
-export const LEVEL_LABELS: Record<TrustLevel, string> = {
-  high: 'Confianza alta',
-  medium: 'Confianza media',
-  low: 'Confianza baja',
-  unknown: 'Sin datos suficientes',
-};

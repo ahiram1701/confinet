@@ -1,3 +1,4 @@
+import type { MessageKey, MessageRef } from '@confinet/i18n';
 import type { SignalId } from './catalog';
 
 /** Pilares de la puntuación de confianza. */
@@ -9,12 +10,15 @@ export type TrustLevel = 'high' | 'medium' | 'low' | 'unknown';
 /**
  * Una señal medida. `value` va de 0 (nada fiable) a 1 (muy fiable).
  * Toda señal lleva una explicación legible: la puntuación nunca es una caja negra.
+ * `message` permite mostrarla en cualquier idioma; `explanation` es el texto en español
+ * (los análisis guardados antes de la traducción solo tienen este).
  */
 export interface Signal {
   id: SignalId;
   pillar: Pillar;
   value: number;
   weight: number;
+  message?: MessageRef;
   explanation: string;
   evidence?: string[];
 }
@@ -71,5 +75,5 @@ export interface TrustScore {
   certainty: number;
   pillars: Record<Pillar, PillarResult>;
   /** Límites aplicados (p. ej. un fact-check desmentido limita la puntuación máxima). */
-  caps: { reason: string; max: number }[];
+  caps: { reason: string; key?: MessageKey; max: number }[];
 }

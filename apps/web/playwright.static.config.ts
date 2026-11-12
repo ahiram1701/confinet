@@ -8,7 +8,12 @@ export default defineConfig({
   reporter: process.env.CI
     ? [['github'], ['html', { open: 'never', outputFolder: 'playwright-report-static' }]]
     : 'list',
-  use: { baseURL: 'http://localhost:4174/confinet/', trace: 'retain-on-failure' },
+  // Los textos de los tests están en español: fijamos el idioma del navegador.
+  use: {
+    baseURL: 'http://localhost:4174/confinet/',
+    trace: 'retain-on-failure',
+    locale: 'es-ES',
+  },
   projects: [
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },

@@ -10,11 +10,11 @@ export interface SourceInput {
   hasContactPage?: boolean;
 }
 
-const REPUTATION_VALUES: Record<Exclude<ReputationRating, 'unknown'>, [number, string]> = {
-  reliable: [1, 'Medio con buena reputación'],
-  mixed: [0.5, 'Medio con reputación mixta'],
-  unreliable: [0, 'Medio señalado como poco fiable'],
-  satire: [0.2, 'Sitio de sátira o humor: no es información real'],
+const REPUTATION_VALUES: Record<Exclude<ReputationRating, 'unknown'>, number> = {
+  reliable: 1,
+  mixed: 0.5,
+  unreliable: 0,
+  satire: 0.2,
 };
 
 export function sourceSignals(input: SourceInput): Signal[] {
@@ -23,18 +23,18 @@ export function sourceSignals(input: SourceInput): Signal[] {
 
   signals.push(
     url.protocol === 'https:'
-      ? signal('source.https', 1, 'El sitio usa conexión cifrada (HTTPS).')
-      : signal('source.https', 0, 'El sitio no usa conexión cifrada (HTTPS).'),
+      ? signal('source.https', 1, 'signal.source.https.yes')
+      : signal('source.https', 0, 'signal.source.https.no'),
   );
 
   const rep = input.reputation;
   if (rep && rep.rating !== 'unknown') {
-    const [value, label] = REPUTATION_VALUES[rep.rating];
     signals.push(
       signal(
         'source.reputation',
-        value,
-        `${label} según ${rep.source}.`,
+        REPUTATION_VALUES[rep.rating],
+        `signal.source.reputation.${rep.rating}`,
+        { source: rep.source },
         rep.notes ? [rep.notes] : undefined,
       ),
     );
@@ -43,21 +43,19 @@ export function sourceSignals(input: SourceInput): Signal[] {
   if (input.domainAgeDays != null) {
     const days = input.domainAgeDays;
     const value = days < 30 ? 0.1 : days < 180 ? 0.3 : days < 365 ? 0.6 : days < 3 * 365 ? 0.8 : 1;
-    signals.push(signal('source.domainAge', value, `Dominio registrado hace ${formatAge(days)}.`));
+    const [unit, n] = ageUnit(days);
+    signals.push(signal('source.domainAge', value, `signal.source.domainAge.${unit}`, { n }));
   }
 
   if (input.hasAboutPage != null || input.hasContactPage != null) {
-    const found = [input.hasAboutPage && '"Quiénes somos"', input.hasContactPage && '"Contacto"']
-      .filter(Boolean)
-      .join(' y ');
-    const count = Number(!!input.hasAboutPage) + Number(!!input.hasContactPage);
+    const about = !!input.hasAboutPage;
+    const contact = !!input.hasContactPage;
+    const variant = about && contact ? 'both' : about ? 'about' : contact ? 'contact' : 'none';
     signals.push(
       signal(
         'source.transparency',
-        count / 2,
-        found
-          ? `El sitio enlaza a ${found}.`
-          : 'No se encuentran páginas de "Quiénes somos" ni "Contacto".',
+        (Number(about) + Number(contact)) / 2,
+        `signal.source.transparency.${variant}`,
       ),
     );
   }
@@ -65,8 +63,8 @@ export function sourceSignals(input: SourceInput): Signal[] {
   return signals;
 }
 
-function formatAge(days: number): string {
-  if (days < 60) return `${days} días`;
-  if (days < 730) return `${Math.round(days / 30)} meses`;
-  return `${Math.floor(days / 365)} años`;
+function ageUnit(days: number): ['days' | 'months' | 'years', number] {
+  if (days < 60) return ['days', days];
+  if (days < 730) return ['months', Math.round(days / 30)];
+  return ['years', Math.floor(days / 365)];
 }
