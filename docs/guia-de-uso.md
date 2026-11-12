@@ -65,9 +65,9 @@ ordenador.
 
 ### Microsoft Edge
 
-Cuando esté publicada en **Edge Add-ons**, búscala allí («Confinet») y pulsa **«Obtener»**: así se
-actualiza sola. Mientras tanto, usa la instalación manual de abajo (también funciona en Edge, en
-`edge://extensions`).
+Instálala desde **[Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/confinet-%E2%80%94-%C2%BFte-puedes-fia/nklniknidhkjnlibadmhchdbakdikhmf)**
+y pulsa **«Obtener»**: así se actualiza sola. Si ya la tenías instalada a mano desde el `.zip`,
+quita esa copia en `edge://extensions` para no tener dos.
 
 ### Chrome y Brave (instalación manual, gratuita)
 
