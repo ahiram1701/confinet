@@ -17,6 +17,7 @@ fuente, contenido y análisis con IA, **explicados señal a señal**.
 
 [**Probar la app →**](https://ahiram1701.github.io/confinet/) ·
 [Guía de uso](docs/guia-de-uso.md) ·
+[User guide (English)](docs/user-guide.md) ·
 [Extensión para Edge](https://microsoftedge.microsoft.com/addons/detail/confinet-%E2%80%94-%C2%BFte-puedes-fia/nklniknidhkjnlibadmhchdbakdikhmf) ·
 [Descargar la extensión](https://github.com/ahiram1701/confinet/releases) ·
 [Informar de un problema](https://github.com/ahiram1701/confinet/issues/new/choose)
@@ -222,7 +223,7 @@ Para activar el modo con servidor en Cloudflare, sigue [docs/despliegue-cloudfla
 - [ ] Lista de reputación de medios en español, cuando exista una con licencia abierta
 - [x] Verificaciones externas en el modo sin servidor
 - [x] Traducción de la interfaz (inglés)
-- [ ] Guía de uso en inglés
+- [x] Guía de uso en inglés
 
 ## Contribuir
 

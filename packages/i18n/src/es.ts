@@ -392,6 +392,10 @@ export const es = {
   'factcheck.testRejected':
     'Google rechazó la key. Revisa que sea correcta y que «Fact Check Tools API» esté activada en tu proyecto.',
   'factcheck.testError': 'No se pudo contactar con Google. Inténtalo de nuevo.',
+
+  // Enlaces a la guía de uso de cada idioma (ruta dentro del repositorio)
+  'guide.installExtension': 'docs/guia-de-uso.md#3-instalar-la-extensión',
+  'guide.updates': 'docs/guia-de-uso.md#actualizaciones',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof es;
