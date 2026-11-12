@@ -71,14 +71,19 @@ export interface I18n {
   errorText(error: unknown): string;
 }
 
-/** Sustituye <tag>texto</tag> por nodos de React. Lo que no está marcado se deja como texto. */
+/**
+ * Sustituye <tag>texto</tag> por nodos de React. Lo que no está marcado se deja como texto.
+ * El contenido de una etiqueta no puede llevar «<»: así la expresión es lineal aunque los
+ * parámetros interpolados (p. ej. un nombre de modelo) vengan de fuera.
+ */
 export function renderRich(
   text: string,
   tags: Record<string, (chunk: string) => ReactNode>,
 ): ReactNode {
   const parts: ReactNode[] = [];
   let last = 0;
-  for (const m of text.matchAll(/<(\w+)>(.*?)<\/\1>/g)) {
+  for (const m of text.matchAll(/<(\w+)>([^<]*)<\/(\w+)>/g)) {
+    if (m[1] !== m[3]) continue;
     const render = tags[m[1]!];
     if (!render) continue;
     parts.push(text.slice(last, m.index), <Fragment key={m.index}>{render(m[2]!)}</Fragment>);
