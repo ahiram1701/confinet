@@ -229,6 +229,24 @@ pidiéndole el JSON en el propio mensaje (es decir, puede costar dos peticiones)
 Elige **«Ninguno (solo heurísticas)»** y pulsa **«Guardar»**. La key de Ollama sigue guardada
 hasta que pulses **«Olvidar key»**.
 
+### Verificaciones externas (opcional)
+
+Confinet puede buscar las afirmaciones de la noticia en las verificaciones que publican medios
+como Maldita, Newtral, AFP o PolitiFact, a través de **Google Fact Check**. Si usas IA, busca las
+afirmaciones que ella extrae; si no, el titular. Un desmentido aparece en **«Verificaciones
+relacionadas»** y limita la nota a 35.
+
+Necesitas una API key de Google, gratuita:
+
+1. Entra en [Google Cloud](https://console.cloud.google.com/apis/library/factchecktools.googleapis.com)
+   (crea un proyecto si te lo pide) y pulsa **«Habilitar»** en **Fact Check Tools API**.
+2. En **APIs y servicios → Credenciales**, pulsa **«Crear credenciales» → «Clave de API»**.
+   Conviene restringirla a esa API.
+3. En Confinet, **Cuenta → Verificaciones externas**, pega la key, pulsa **«Probar key»** y
+   después **«Guardar»**.
+
+La key se guarda solo en este navegador. Para quitarla, pulsa **«Olvidar key»**.
+
 ---
 
 ## 7. Historial
@@ -272,6 +290,7 @@ añade qué esperabas y por qué. Necesitas una cuenta de GitHub (gratis).
 | Antigüedad del dominio    | El dominio                               | rdap.org (servicio público)     |
 | IA con Puter              | Título y texto del artículo              | Puter, con tu cuenta            |
 | IA con Ollama Cloud       | Título y texto del artículo + tu key     | Ollama                          |
+| Verificaciones externas   | Afirmaciones o titular + tu key          | Google Fact Check Tools         |
 | Historial y ajustes       | Nada                                     | Se quedan en tu navegador       |
 
 Confinet no tiene servidor propio en esta versión, no usa cookies de terceros ni rastreadores, y

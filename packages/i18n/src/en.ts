@@ -365,4 +365,23 @@ export const en: Record<MessageKey, Message> = {
   'ext.autoHelp':
     'Requires permission to read the pages you visit. Only pages that look like articles are sent to Confinet. When off, Confinet only acts when you click its icon.',
   'ext.privacy': 'Privacy policy',
+
+  // Verificaciones externas (versión sin servidor)
+  'error.settings.pasteFactCheckKey': 'Paste your Google API key.',
+  'factcheck.title': 'External fact-checks (optional)',
+  'factcheck.intro':
+    'Looks up the claims in the story (or its headline, if you do not use AI) in fact-checks published by outlets such as Maldita, Newtral, AFP or PolitiFact, through <b>Google Fact Check</b>. A debunk caps the score at 35.',
+  'factcheck.steps':
+    'It is free. Create an API key in <link>Google Cloud</link>: enable the "Fact Check Tools API" and, under "Credentials", create a key restricted to that API. It is stored only in this browser.',
+  'factcheck.key': 'Google API key',
+  'factcheck.active': '✓ Fact-checks are on in this browser.',
+  'factcheck.saved': 'Saved. It will be used in the next analyses.',
+  'factcheck.forgotten': 'Key deleted. Fact-checks are turned off.',
+  'factcheck.forget': 'Forget key',
+  'factcheck.test': 'Test key',
+  'factcheck.testing': 'Testing…',
+  'factcheck.testOk': '✓ The key works.',
+  'factcheck.testRejected':
+    'Google rejected the key. Check that it is correct and that the "Fact Check Tools API" is enabled in your project.',
+  'factcheck.testError': 'Could not reach Google. Try again.',
 };

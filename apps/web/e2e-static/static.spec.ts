@@ -83,6 +83,38 @@ test('la cuenta muestra que no hay ningún proveedor de IA elegido', async ({ pa
   await expect(page.getByLabel('API key de Ollama')).toBeVisible();
   // Sin modelo no se puede guardar.
   await page.getByLabel('API key de Ollama').fill('clave-de-prueba');
-  await page.getByRole('button', { name: 'Guardar' }).click();
+  await page.getByRole('button', { name: 'Guardar' }).first().click();
   await expect(page.getByTestId('ai-current')).toContainText('Ninguno');
+});
+
+test('con key de Google, un desmentido aparece y limita la puntuación', async ({ page }) => {
+  // Respuesta simulada de Google Fact Check Tools (no se llama al servicio real).
+  await page.route('https://factchecktools.googleapis.com/**', (route) =>
+    route.fulfill({
+      json: {
+        claims: [
+          {
+            text: 'El paro baja por tercer mes consecutivo',
+            claimReview: [
+              {
+                publisher: { name: 'Verificador de prueba' },
+                url: 'https://verificador.example/bulo',
+                textualRating: 'Falso',
+              },
+            ],
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto('cuenta');
+  await page.getByLabel('API key de Google').fill('clave-de-prueba');
+  await page.getByRole('button', { name: 'Guardar' }).nth(1).click();
+  await expect(page.getByTestId('factcheck-active')).toBeVisible();
+
+  await page.goto(await handoffUrl(page));
+  await expect(page).toHaveURL(/\/confinet\/resultado\//);
+  await expect(page.getByText('Verificaciones relacionadas')).toBeVisible();
+  await expect(page.getByText('Verificador de prueba: Falso')).toBeVisible();
+  await expect(page.getByText(/desmentidas por verificadores/).first()).toBeVisible();
 });
